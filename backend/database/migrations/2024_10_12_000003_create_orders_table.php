@@ -22,9 +22,18 @@ return new class extends Migration
                 'cancelled',
                 'refunded'
             ])->default('pending');
-            $table->decimal('total_amount', 10, 2);
+            $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('discount_amount', 10, 2)->default(0);
             $table->string('discount_code')->nullable();
+            
+            // Campos de entrega
+            $table->json('delivery_address')->nullable();
+            
+            // Campos de pagamento
+            $table->enum('payment_method', ['pix', 'cash', 'card'])->nullable();
+            $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->json('payment_details')->nullable();
+            
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -38,6 +47,7 @@ return new class extends Migration
             $table->decimal('unit_price', 10, 2);
             $table->decimal('total_price', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

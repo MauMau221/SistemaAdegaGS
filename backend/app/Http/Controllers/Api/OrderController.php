@@ -14,6 +14,9 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $userId = auth()->id();
+        \Log::info('OrderController@index - User ID: ' . $userId);
+
         $query = Order::with(['items.product', 'user', 'payments']);
 
         if ($request->has('status')) {
@@ -24,7 +27,13 @@ class OrderController extends Controller
             $query->where('type', $request->type);
         }
 
-        return $query->latest()->paginate(15);
+        // Retornar apenas os pedidos do usuário autenticado
+        $query->where('user_id', $userId);
+
+        $orders = $query->latest()->get();
+        \Log::info('OrderController@index - Orders found: ' . $orders->count());
+
+        return $orders;
     }
 
     public function store(Request $request)
@@ -58,6 +67,7 @@ class OrderController extends Controller
                 'order_number' => 'PED-' . strtoupper(Str::random(8)),
                 'type' => $request->type,
                 'status' => 'pending',
+                'total_amount' => 0, // Será calculado depois
                 'delivery_address' => $request->type === 'online' ? json_encode($request->delivery) : null,
                 'payment_method' => $request->payment['method'],
                 'payment_status' => 'pending',
@@ -77,7 +87,8 @@ class OrderController extends Controller
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $product->price
+                    'unit_price' => $product->price,
+                    'total_price' => $product->price * $item['quantity']
                 ]);
 
                 // Atualizar estoque
@@ -86,6 +97,9 @@ class OrderController extends Controller
 
             // Calcular total
             $order->calculateTotal();
+            
+            // Recarregar o pedido para garantir que o total foi salvo
+            $order->refresh();
 
             DB::commit();
 
