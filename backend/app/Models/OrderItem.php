@@ -2,46 +2,42 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderItem extends Model
 {
-    use HasFactory, SoftDeletes;
-
     protected $fillable = [
         'order_id',
         'product_id',
         'quantity',
-        'unit_price',
-        'total_price'
+        'price',
+        'subtotal',
     ];
 
     protected $casts = [
-        'unit_price' => 'decimal:2',
-        'total_price' => 'decimal:2'
+        'price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
-    // Accessor para manter compatibilidade com 'price'
-    public function getPriceAttribute()
-    {
-        return $this->unit_price;
-    }
-
-    // Mutator para manter compatibilidade com 'price'
-    public function setPriceAttribute($value)
-    {
-        $this->attributes['unit_price'] = $value;
-    }
-
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($item) {
+            if (empty($item->subtotal)) {
+                $item->subtotal = $item->quantity * $item->price;
+            }
+        });
     }
 }

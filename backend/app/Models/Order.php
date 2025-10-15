@@ -2,73 +2,48 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    use HasFactory, SoftDeletes;
-
     protected $fillable = [
         'user_id',
         'order_number',
-        'type',
         'status',
-        'total_amount',
-        'delivery_address',
-        'payment_method',
-        'payment_status',
-        'payment_details',
-        'discount_code',
-        'notes'
+        'total',
     ];
 
     protected $casts = [
-        'delivery_address' => 'array',
-        'payment_details' => 'array',
-        'total_amount' => 'decimal:2'
+        'total' => 'decimal:2',
     ];
 
-    // Accessor para manter compatibilidade com 'total'
-    public function getTotalAttribute()
-    {
-        return $this->total_amount;
-    }
-
-    // Mutator para manter compatibilidade com 'total'
-    public function setTotalAttribute($value)
-    {
-        $this->attributes['total_amount'] = $value;
-    }
-
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function items()
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function payments()
+    public function payment(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
-    public function calculateTotal()
+    protected static function boot()
     {
-        // Recarregar os itens do banco para garantir dados atualizados
-        $this->load('items');
-        
-        $total = $this->items->sum(function ($item) {
-            return $item->quantity * $item->unit_price;
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $lastOrder = static::orderBy('id', 'desc')->first();
+                $nextId = $lastOrder ? $lastOrder->id + 1 : 1;
+                $order->order_number = date('Ymd') . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            }
         });
-        
-        $this->total_amount = $total;
-        $this->save();
-        
-        return $total;
     }
 }

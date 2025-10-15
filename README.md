@@ -1,18 +1,27 @@
-# ADEGA GS - Sistema de Gestão e E-commerce
+# ADEGA GS - Sistema Completo de Gestão e E-commerce
 
-Sistema completo para gerenciamento de adega com painel administrativo, controle de estoque, ponto de venda (POS) e e-commerce integrado com pagamentos via Mercado Pago.
+Sistema completo para gerenciamento de adega com:
+- 🛒 **E-commerce** moderno (interface inspirada no Zé Delivery)
+- 👨‍💼 **Painel Administrativo** completo
+- 👷‍♂️ **Painel do Funcionário** (POS - Ponto de Venda)
+- 📊 **Dashboard** com relatórios e métricas
+- 💰 **Controle de Caixa** integrado
+- 📦 **Gestão de Estoque** em tempo real
+- 📋 **Sistema de Pedidos** completo
+- 👥 **Gestão de Usuários** (Admin, Funcionário, Cliente)
 
 ## 📋 Índice
 
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Requisitos](#requisitos)
-- [Instalação](#instalação)
+- [Instalação Completa](#instalação-completa)
 - [Configuração](#configuração)
 - [Execução](#execução)
-- [Funcionalidades](#funcionalidades)
+- [Funcionalidades Implementadas](#funcionalidades-implementadas)
 - [Estrutura de Diretórios](#estrutura-de-diretórios)
 - [API Endpoints](#api-endpoints)
 - [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Usuários de Teste](#usuários-de-teste)
 - [Troubleshooting](#troubleshooting)
 
 ## 🏗️ Estrutura do Projeto
@@ -20,29 +29,34 @@ Sistema completo para gerenciamento de adega com painel administrativo, controle
 O projeto está dividido em duas partes principais:
 
 ### Backend (Laravel 10)
-- API RESTful
-- Autenticação com Laravel Sanctum
-- Gestão de produtos, categorias e estoque
-- Sistema de pedidos e pagamentos
-- Integração com Mercado Pago (em desenvolvimento)
-- Controle de usuários e permissões
+- ✅ **API RESTful** completa com autenticação Sanctum
+- ✅ **Sistema de Usuários** com 3 tipos: Admin, Funcionário, Cliente
+- ✅ **CRUD Completo** de produtos, categorias, usuários
+- ✅ **Sistema de Pedidos** com status e controle de estoque
+- ✅ **Controle de Caixa** com movimentações
+- ✅ **Middleware de Acesso** por tipo de usuário
+- ✅ **Relatórios e Dashboard** com métricas
+- ✅ **Gestão de Estoque** em tempo real
+- 🔄 Integração com Mercado Pago (em desenvolvimento)
 
-### Frontend (Angular 17)
-- Interface de e-commerce moderna (inspirada em Zé Delivery)
-- Sistema de carrinho de compras dinâmico
-- Autenticação e gestão de perfil
-- Checkout com múltiplas formas de pagamento
-- Interface responsiva e intuitiva
-- Painel administrativo (em desenvolvimento)
+### Frontend (Angular 17 - Standalone Components)
+- ✅ **E-commerce** moderno com carrinho dinâmico
+- ✅ **Painel Administrativo** completo (Dashboard, Produtos, Categorias, Usuários, Relatórios, Configurações)
+- ✅ **Painel do Funcionário** (Dashboard, Caixa, Pedidos, Estoque)
+- ✅ **Sistema de Autenticação** com guards por tipo de usuário
+- ✅ **Interface Responsiva** com Angular Material
+- ✅ **Controle de Caixa** com relatórios em PDF
+- ✅ **Gestão de Pedidos** em tempo real
+- ✅ **Sistema de Estoque** com movimentações
 
-## 💻 Requisitos
+## 💻 Requisitos do Sistema
 
-### Backend
+### Backend (Laravel 10)
 - **PHP**: 8.1 ou superior
 - **Composer**: 2.x
 - **MySQL**: 8.0+ ou **MariaDB**: 10.3+
 - **Laravel**: 10.x
-- **Extensões PHP**:
+- **Extensões PHP Obrigatórias**:
   - OpenSSL
   - PDO
   - Mbstring
@@ -51,14 +65,21 @@ O projeto está dividido em duas partes principais:
   - Ctype
   - JSON
   - BCMath
+  - Fileinfo
+  - GD (para processamento de imagens)
 
-### Frontend
+### Frontend (Angular 17)
 - **Node.js**: 18.x ou superior
 - **NPM**: 9.x ou superior
 - **Angular CLI**: 17.x
 - **Navegador**: Chrome, Firefox, Edge ou Safari (versões recentes)
 
-## 📦 Instalação
+### Sistema Operacional
+- **Windows**: 10/11
+- **Linux**: Ubuntu 20.04+ ou similar
+- **macOS**: 10.15+
+
+## 📦 Instalação Completa
 
 ### 1. Clone o Repositório
 
@@ -67,7 +88,7 @@ git clone https://github.com/seu-usuario/adega.git
 cd adega
 ```
 
-### 2. Configuração do Backend
+### 2. Configuração do Backend (Laravel)
 
 ```bash
 # Entre na pasta backend
@@ -83,7 +104,7 @@ cp .env.example .env
 php artisan key:generate
 
 # Configure o banco de dados no arquivo .env
-# Edite as seguintes variáveis:
+# IMPORTANTE: Edite as seguintes variáveis:
 # DB_CONNECTION=mysql
 # DB_HOST=127.0.0.1
 # DB_PORT=3306
@@ -94,16 +115,20 @@ php artisan key:generate
 # Execute as migrations
 php artisan migrate
 
-# Execute os seeders para popular o banco
+# Execute os seeders para popular o banco com dados de teste
 php artisan db:seed
+
+# Crie o link simbólico para storage (imagens)
+php artisan storage:link
 
 # Limpe o cache
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
+php artisan view:clear
 ```
 
-### 3. Configuração do Frontend
+### 3. Configuração do Frontend (Angular)
 
 ```bash
 # Entre na pasta frontend (a partir da raiz do projeto)
@@ -113,10 +138,13 @@ cd frontend
 npm install
 
 # Se necessário, instale o Angular CLI globalmente
-npm install -g @angular/cli
+npm install -g @angular/cli@17
+
+# Instale dependências específicas para gráficos
+npm install ng2-charts chart.js
 ```
 
-## ⚙️ Configuração
+## ⚙️ Configuração Detalhada
 
 ### Backend (.env)
 
@@ -125,23 +153,31 @@ Edite o arquivo `backend/.env` com as seguintes configurações:
 ```env
 APP_NAME="ADEGA GS"
 APP_ENV=local
-APP_KEY=base64:... (gerado automaticamente)
+APP_KEY=base64:... (gerado automaticamente pelo artisan key:generate)
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
-# Banco de Dados
+# Banco de Dados - CONFIGURE SEUS DADOS
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=adega_gs
 DB_USERNAME=root
-DB_PASSWORD=
+DB_PASSWORD=sua_senha_aqui
 
 # CORS (permitir requisições do frontend)
 SANCTUM_STATEFUL_DOMAINS=localhost:4200
 SESSION_DOMAIN=localhost
 
-# Mercado Pago (adicione suas credenciais)
+# Configurações de Sessão
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+
+# Cache
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+
+# Mercado Pago (opcional - para futuras integrações)
 MERCADO_PAGO_PUBLIC_KEY=
 MERCADO_PAGO_ACCESS_TOKEN=
 ```
@@ -157,9 +193,17 @@ export const environment = {
 };
 ```
 
+### Banco de Dados
+
+**IMPORTANTE**: Crie o banco de dados `adega_gs` antes de executar as migrations:
+
+```sql
+CREATE DATABASE adega_gs CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
 ## 🚀 Execução
 
-### Iniciar o Backend
+### 1. Iniciar o Backend (Laravel)
 
 ```bash
 cd backend
@@ -168,7 +212,9 @@ php artisan serve
 
 O servidor estará disponível em: `http://localhost:8000`
 
-### Iniciar o Frontend
+**Verifique se está funcionando**: Acesse `http://localhost:8000/api/products`
+
+### 2. Iniciar o Frontend (Angular)
 
 Em outro terminal:
 
@@ -179,77 +225,94 @@ ng serve
 
 A aplicação estará disponível em: `http://localhost:4200`
 
-## ✨ Funcionalidades
+### 3. Verificar se tudo está funcionando
 
-### Implementadas
+1. **Backend**: `http://localhost:8000/api/products` deve retornar uma lista de produtos
+2. **Frontend**: `http://localhost:4200` deve carregar a página inicial
+3. **Login**: Use os usuários de teste (veja seção abaixo)
 
-#### Backend
-- ✅ API RESTful completa
-- ✅ Autenticação com Sanctum (registro, login, logout)
-- ✅ CRUD de Produtos
-- ✅ CRUD de Categorias
-- ✅ Sistema de Pedidos
-- ✅ Controle de Estoque
-- ✅ Validações e tratamento de erros
-- ✅ Middleware de autenticação
-- ✅ Soft Deletes
+## ✨ Funcionalidades Implementadas
 
-#### Frontend
-- ✅ Página inicial com produtos em destaque
-- ✅ Listagem de produtos com filtros
-- ✅ Sistema de busca
-- ✅ Carrinho de compras lateral dinâmico
-- ✅ Autenticação (login e registro)
-- ✅ Página de checkout com formulário de entrega
-- ✅ Seleção de forma de pagamento (PIX, Dinheiro, Cartão)
-- ✅ Header responsivo estilo Zé Delivery
-- ✅ Persistência do carrinho no localStorage
-- ✅ Guards de autenticação
-- ✅ Interceptor HTTP para tokens
-- ✅ Feedback visual de ações
+### 🛒 E-commerce (Cliente)
+- ✅ **Página inicial** com produtos em destaque
+- ✅ **Listagem de produtos** com filtros por categoria
+- ✅ **Sistema de busca** em tempo real
+- ✅ **Carrinho de compras** lateral dinâmico
+- ✅ **Autenticação** (login e registro)
+- ✅ **Checkout completo** com formulário de entrega
+- ✅ **Seleção de pagamento** (PIX, Dinheiro, Cartão)
+- ✅ **Header responsivo** estilo Zé Delivery
+- ✅ **Persistência do carrinho** no localStorage
 
-### Em Desenvolvimento
+### 👨‍💼 Painel Administrativo
+- ✅ **Dashboard** com métricas e gráficos
+- ✅ **Gestão de Produtos** (CRUD completo)
+- ✅ **Gestão de Categorias** (CRUD com estrutura hierárquica)
+- ✅ **Gestão de Usuários** (CRUD com tipos: Admin, Funcionário, Cliente)
+- ✅ **Relatórios** (vendas, produtos, clientes)
+- ✅ **Configurações do Sistema** (gerais, negócio, pagamento, estoque, pedidos, email)
+
+### 👷‍♂️ Painel do Funcionário
+- ✅ **Dashboard** com resumo do dia
+- ✅ **Controle de Caixa** (abrir/fechar, movimentações, relatórios PDF)
+- ✅ **Gestão de Pedidos** (listar, atualizar status, imprimir)
+- ✅ **Controle de Estoque** (consultar, movimentar, alertas)
+
+### 🔧 Backend (API)
+- ✅ **API RESTful** completa com Laravel Sanctum
+- ✅ **Sistema de Usuários** com 3 tipos e permissões
+- ✅ **CRUD Completo** de produtos, categorias, usuários
+- ✅ **Sistema de Pedidos** com controle de status
+- ✅ **Controle de Estoque** em tempo real
+- ✅ **Middleware de Acesso** por tipo de usuário
+- ✅ **Relatórios e Dashboard** com métricas
+- ✅ **Controle de Caixa** com movimentações
+
+### 🔄 Em Desenvolvimento
 - 🔄 Integração com Mercado Pago
-- 🔄 Painel Administrativo
-- 🔄 Relatórios e Dashboard
-- 🔄 Sistema de notificações
+- 🔄 Sistema de notificações push
 - 🔄 Acompanhamento de pedidos em tempo real
-- 🔄 Impressão de notas
+- 🔄 Impressão de notas térmicas
+- 🔄 Backup automático
 
 ## 📁 Estrutura de Diretórios
 
 ```
 adega/
-├── backend/                    # API Laravel
+├── backend/                           # API Laravel
 │   ├── app/
 │   │   ├── Http/
 │   │   │   ├── Controllers/
-│   │   │   │   └── Api/       # Controllers da API
-│   │   │   └── Middleware/
-│   │   └── Models/            # Models Eloquent
+│   │   │   │   └── Api/
+│   │   │   │       ├── Admin/         # Controllers do painel admin
+│   │   │   │       └── Employee/      # Controllers do painel funcionário
+│   │   │   └── Middleware/            # Middleware de acesso
+│   │   └── Models/                    # Models Eloquent
 │   ├── database/
-│   │   ├── migrations/        # Migrations do banco
-│   │   ├── seeders/          # Seeders
-│   │   └── factories/        # Factories
+│   │   ├── migrations/                # Migrations do banco
+│   │   └── seeders/                   # Seeders com dados de teste
 │   ├── routes/
-│   │   └── api.php           # Rotas da API
-│   └── storage/
-│       └── app/
-│           └── public/
-│               └── images/    # Imagens dos produtos
+│   │   ├── api.php                    # Rotas da API
+│   │   └── admin.php                  # Rotas administrativas
+│   └── storage/app/public/images/     # Imagens dos produtos
 │
-├── frontend/                  # Aplicação Angular
+├── frontend/                          # Aplicação Angular (Standalone Components)
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── auth/         # Módulo de autenticação
-│   │   │   ├── checkout/     # Módulo de checkout
-│   │   │   ├── core/         # Serviços, guards, interceptors
-│   │   │   ├── home/         # Página inicial
-│   │   │   ├── products/     # Listagem de produtos
-│   │   │   └── shared/       # Componentes compartilhados
-│   │   ├── assets/
-│   │   │   └── images/       # Imagens estáticas
-│   │   └── environments/     # Configurações de ambiente
+│   │   │   ├── admin/                 # Painel administrativo
+│   │   │   │   ├── components/        # Layout admin
+│   │   │   │   ├── pages/             # Páginas (dashboard, produtos, etc.)
+│   │   │   │   └── services/          # Serviços admin
+│   │   │   ├── employee/              # Painel do funcionário
+│   │   │   │   ├── components/        # Layout funcionário
+│   │   │   │   ├── pages/             # Páginas (caixa, pedidos, etc.)
+│   │   │   │   └── services/          # Serviços funcionário
+│   │   │   ├── store/                 # E-commerce (cliente)
+│   │   │   ├── auth/                  # Autenticação
+│   │   │   ├── core/                  # Guards, interceptors, serviços
+│   │   │   └── shared/                # Componentes compartilhados
+│   │   ├── assets/images/             # Imagens estáticas
+│   │   └── environments/              # Configurações de ambiente
 │   └── angular.json
 │
 └── README.md
@@ -266,29 +329,67 @@ adega/
 | GET | `/api/products` | Listar produtos |
 | GET | `/api/products/{id}` | Detalhes do produto |
 | GET | `/api/categories` | Listar categorias |
-| GET | `/api/categories/{id}` | Detalhes da categoria |
 
-### Rotas Protegidas (Requerem Autenticação)
+### Rotas de Cliente (Customer)
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | POST | `/api/logout` | Fazer logout |
 | GET | `/api/user` | Obter dados do usuário |
-| GET | `/api/orders` | Listar pedidos do usuário |
+| GET | `/api/my-orders` | Listar pedidos do cliente |
 | POST | `/api/orders` | Criar novo pedido |
 | GET | `/api/orders/{id}` | Detalhes do pedido |
-| PATCH | `/api/orders/{id}/status` | Atualizar status do pedido |
 
-### Rotas Administrativas
+### Rotas de Funcionário (Employee)
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| POST | `/api/products` | Criar produto |
-| PUT | `/api/products/{id}` | Atualizar produto |
-| DELETE | `/api/products/{id}` | Deletar produto |
-| POST | `/api/categories` | Criar categoria |
-| PUT | `/api/categories/{id}` | Atualizar categoria |
-| DELETE | `/api/categories/{id}` | Deletar categoria |
+| GET | `/api/orders` | Listar todos os pedidos |
+| PATCH | `/api/orders/{id}/status` | Atualizar status do pedido |
+| GET | `/api/stock/summary` | Resumo do estoque |
+| GET | `/api/stock/movements` | Movimentações de estoque |
+| POST | `/api/stock/update` | Atualizar estoque |
+
+### Rotas Administrativas (Admin)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/admin/dashboard/summary` | Resumo do dashboard |
+| GET | `/api/admin/dashboard/sales-chart` | Gráfico de vendas |
+| GET | `/api/admin/dashboard/top-products` | Top produtos |
+| GET | `/api/admin/dashboard/top-customers` | Top clientes |
+| GET | `/api/admin/products` | Listar produtos (admin) |
+| POST | `/api/admin/products` | Criar produto |
+| PUT | `/api/admin/products/{id}` | Atualizar produto |
+| DELETE | `/api/admin/products/{id}` | Deletar produto |
+| GET | `/api/admin/categories` | Listar categorias (admin) |
+| GET | `/api/admin/categories/tree` | Árvore de categorias |
+| POST | `/api/admin/categories` | Criar categoria |
+| PUT | `/api/admin/categories/{id}` | Atualizar categoria |
+| DELETE | `/api/admin/categories/{id}` | Deletar categoria |
+| GET | `/api/admin/users` | Listar usuários |
+| POST | `/api/admin/users` | Criar usuário |
+| PUT | `/api/admin/users/{id}` | Atualizar usuário |
+| DELETE | `/api/admin/users/{id}` | Deletar usuário |
+
+## 👥 Usuários de Teste
+
+O seeder cria automaticamente usuários para teste:
+
+### 👨‍💼 Administrador
+- **Email**: `admin@adega.com`
+- **Senha**: `123456`
+- **Acesso**: Painel administrativo completo
+
+### 👷‍♂️ Funcionário
+- **Email**: `funcionario@adega.com`
+- **Senha**: `123456`
+- **Acesso**: Painel do funcionário (caixa, pedidos, estoque)
+
+### 👤 Cliente
+- **Email**: `cliente@adega.com`
+- **Senha**: `123456`
+- **Acesso**: E-commerce (loja)
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -298,14 +399,17 @@ adega/
 - **MySQL** - Banco de dados
 - **Eloquent ORM** - Mapeamento objeto-relacional
 - **Laravel Validation** - Validação de dados
+- **Laravel Migrations** - Versionamento do banco
+- **Laravel Seeders** - População de dados
 
 ### Frontend
-- **Angular 17** - Framework TypeScript
+- **Angular 17** - Framework TypeScript (Standalone Components)
 - **Angular Material** - Biblioteca de componentes UI
 - **RxJS** - Programação reativa
 - **TypeScript** - Superset JavaScript
-- **SCSS** - Pré-processador CSS
+- **CSS** - Estilização
 - **HttpClient** - Cliente HTTP
+- **Chart.js + ng2-charts** - Gráficos e relatórios
 
 ## 🐛 Troubleshooting
 
@@ -317,67 +421,108 @@ cd backend
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
+php artisan view:clear
 ```
 
 ### Problema: Erro 404 nas rotas da API
 
 **Solução:**
-Verifique se o servidor Laravel está rodando em `http://localhost:8000`
+1. Verifique se o servidor Laravel está rodando em `http://localhost:8000`
+2. Teste: `http://localhost:8000/api/products`
 
 ### Problema: CORS Error no frontend
 
 **Solução:**
-Adicione no `backend/config/cors.php`:
-```php
-'paths' => ['api/*', 'sanctum/csrf-cookie'],
-'allowed_origins' => ['http://localhost:4200'],
+O CORS já está configurado, mas se houver problemas, verifique:
+```bash
+cd backend
+php artisan config:clear
 ```
 
 ### Problema: Token não está sendo enviado nas requisições
 
 **Solução:**
-Verifique se o interceptor está registrado em `frontend/src/app/app.config.ts`
+1. Verifique se o interceptor está registrado em `frontend/src/app/app.config.ts`
+2. Limpe o localStorage: `localStorage.clear()`
 
 ### Problema: Produtos não aparecem no frontend
 
 **Solução:**
-1. Verifique se o seeder foi executado: `php artisan db:seed`
-2. Verifique se há dados no banco: acesse `http://localhost:8000/api/products`
-3. Verifique o console do navegador para erros
+1. Execute o seeder: `php artisan db:seed`
+2. Teste a API: `http://localhost:8000/api/products`
+3. Verifique o console do navegador (F12)
 
 ### Problema: Imagens dos produtos não carregam
 
 **Solução:**
-1. Crie o link simbólico: `php artisan storage:link`
-2. Coloque uma imagem padrão em: `backend/storage/app/public/images/no-image.jpg`
+```bash
+cd backend
+php artisan storage:link
+```
 
-### Problema: Erro ao fazer login/logout
+### Problema: Painel admin não carrega dados
 
 **Solução:**
-1. Limpe o cache do navegador
-2. Verifique se o token está sendo salvo no localStorage
-3. Verifique se o Sanctum está configurado corretamente no `.env`
+1. Verifique se está logado como admin: `admin@adega.com`
+2. Verifique o console do navegador para erros 401/403
+3. Limpe o localStorage e faça login novamente
+
+### Problema: Painel funcionário não carrega dados
+
+**Solução:**
+1. Verifique se está logado como funcionário: `funcionario@adega.com`
+2. Verifique se o servidor Laravel está rodando
+3. Teste as rotas de funcionário: `http://localhost:8000/api/orders`
+
+### Problema: Erro ao fazer login
+
+**Solução:**
+1. Verifique se o banco de dados foi criado
+2. Execute as migrations: `php artisan migrate`
+3. Execute o seeder: `php artisan db:seed`
+4. Limpe o cache do navegador (Ctrl+F5)
+
+### Problema: Chart.js não funciona no dashboard
+
+**Solução:**
+Os gráficos estão temporariamente desabilitados. Para habilitar:
+```bash
+cd frontend
+npm install ng2-charts chart.js
+```
 
 ## 📝 Notas Importantes
 
-1. **Banco de Dados**: Certifique-se de criar o banco de dados `adega_gs` antes de rodar as migrations
-2. **Seeders**: Os seeders populam o banco com dados de exemplo (produtos, categorias, usuários)
+1. **Banco de Dados**: Certifique-se de criar o banco `adega_gs` antes de rodar as migrations
+2. **Seeders**: Populam o banco com dados de exemplo (produtos, categorias, usuários, pedidos)
 3. **Imagens**: Coloque as imagens dos produtos em `backend/storage/app/public/images/`
-4. **CORS**: O backend está configurado para aceitar requisições do frontend em `localhost:4200`
-5. **Autenticação**: Use o Sanctum para autenticação de API (tokens Bearer)
+4. **CORS**: Configurado para aceitar requisições do frontend em `localhost:4200`
+5. **Autenticação**: Sanctum com tokens Bearer
+6. **Tipos de Usuário**: Admin, Funcionário, Cliente com permissões específicas
+7. **Angular**: Usa Standalone Components (sem módulos tradicionais)
+8. **Laravel**: Versão 10 com Sanctum para autenticação
+
+## 🚀 Checklist de Instalação
+
+- [ ] PHP 8.1+ instalado
+- [ ] Composer instalado
+- [ ] Node.js 18+ instalado
+- [ ] MySQL/MariaDB instalado
+- [ ] Banco `adega_gs` criado
+- [ ] Repositório clonado
+- [ ] Dependências do backend instaladas (`composer install`)
+- [ ] Dependências do frontend instaladas (`npm install`)
+- [ ] Arquivo `.env` configurado
+- [ ] Migrations executadas (`php artisan migrate`)
+- [ ] Seeders executados (`php artisan db:seed`)
+- [ ] Storage link criado (`php artisan storage:link`)
+- [ ] Servidor Laravel rodando (`php artisan serve`)
+- [ ] Servidor Angular rodando (`ng serve`)
+- [ ] Teste de login realizado
 
 ## 📄 Licença
 
 Este projeto é privado e de uso interno.
 
-## 👥 Contribuidores
 
-- Desenvolvedor Principal: [Seu Nome]
-
-## 📞 Suporte
-
-Para dúvidas ou problemas, entre em contato através do email: seu-email@example.com
-
----
-
-**Última atualização**: Outubro 2024
+**Última atualização**: Janeiro 2025

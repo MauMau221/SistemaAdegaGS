@@ -24,7 +24,6 @@ return new class extends Migration
             $table->boolean('featured')->default(false);
             $table->json('images')->nullable();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

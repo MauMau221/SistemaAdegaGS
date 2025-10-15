@@ -14,26 +14,29 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $userId = auth()->id();
-        \Log::info('OrderController@index - User ID: ' . $userId);
-
-        $query = Order::with(['items.product', 'user', 'payments']);
+        $query = Order::with(['items.product', 'user', 'payment']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
-        }
-
-        // Retornar apenas os pedidos do usuário autenticado
-        $query->where('user_id', $userId);
-
         $orders = $query->latest()->get();
         \Log::info('OrderController@index - Orders found: ' . $orders->count());
 
-        return $orders;
+        return response()->json($orders);
+    }
+
+    public function myOrders(Request $request)
+    {
+        $query = Order::with(['items.product', 'payment'])
+            ->where('user_id', auth()->id());
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->latest()->get();
+        return response()->json($orders);
     }
 
     public function store(Request $request)
@@ -42,20 +45,9 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'type' => 'required|in:local,online',
-            'delivery' => 'required_if:type,online|array',
-            'delivery.address' => 'required_if:type,online|string',
-            'delivery.number' => 'required_if:type,online|string',
-            'delivery.neighborhood' => 'required_if:type,online|string',
-            'delivery.city' => 'required_if:type,online|string',
-            'delivery.state' => 'required_if:type,online|string',
-            'delivery.zipcode' => 'required_if:type,online|string',
-            'delivery.phone' => 'required_if:type,online|string',
-            'payment' => 'required|array',
-            'payment.method' => 'required|in:pix,cash,card',
-            'payment.change' => 'required_if:payment.method,cash|nullable|numeric',
-            'discount_code' => 'nullable|string',
-            'notes' => 'nullable|string'
+            'payment_method' => 'required|in:dinheiro,cartão de débito,cartão de crédito,pix',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20'
         ]);
 
         try {
@@ -64,16 +56,12 @@ class OrderController extends Controller
             // Criar pedido
             $order = Order::create([
                 'user_id' => auth()->id(),
-                'order_number' => 'PED-' . strtoupper(Str::random(8)),
-                'type' => $request->type,
+                'order_number' => date('Ymd') . str_pad(Order::count() + 1, 4, '0', STR_PAD_LEFT),
                 'status' => 'pending',
-                'total_amount' => 0, // Será calculado depois
-                'delivery_address' => $request->type === 'online' ? json_encode($request->delivery) : null,
-                'payment_method' => $request->payment['method'],
-                'payment_status' => 'pending',
-                'discount_code' => $request->discount_code,
-                'notes' => $request->notes
+                'total' => 0 // Será calculado depois
             ]);
+
+            $total = 0;
 
             // Adicionar itens
             foreach ($request->items as $item) {
@@ -83,27 +71,44 @@ class OrderController extends Controller
                     throw new \Exception("Produto {$product->name} não possui estoque suficiente");
                 }
 
+                $subtotal = $product->price * $item['quantity'];
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
-                    'unit_price' => $product->price,
-                    'total_price' => $product->price * $item['quantity']
+                    'price' => $product->price,
+                    'subtotal' => $subtotal
                 ]);
 
                 // Atualizar estoque
-                $product->updateStock($item['quantity']);
+                $product->decrement('stock_quantity', $item['quantity']);
+                
+                // Registrar movimentação de estoque
+                $product->stockMovements()->create([
+                    'type' => 'out',
+                    'quantity' => $item['quantity'],
+                    'reason' => 'Venda - Pedido #' . $order->order_number
+                ]);
+
+                $total += $subtotal;
             }
 
-            // Calcular total
-            $order->calculateTotal();
-            
-            // Recarregar o pedido para garantir que o total foi salvo
-            $order->refresh();
+            // Atualizar total do pedido
+            $order->update(['total' => $total]);
+
+            // Criar pagamento
+            $order->payment()->create([
+                'amount' => $total,
+                'payment_method' => $request->payment_method,
+                'status' => 'completed'
+            ]);
 
             DB::commit();
 
-            return response()->json($order->load(['items.product', 'user']), 201);
+            return response()->json(
+                $order->load(['items.product', 'user', 'payment']),
+                201
+            );
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -113,18 +118,37 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        return $order->load(['items.product', 'user', 'payments']);
+        return response()->json($order->load(['items.product', 'user', 'payment']));
     }
 
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:processing,paid,shipped,delivered,cancelled,refunded'
+            'status' => 'required|in:pending,delivering,completed,cancelled'
         ]);
 
         $order->status = $request->status;
         $order->save();
 
-        return response()->json($order);
+        // Se o pedido for cancelado, estornar o estoque
+        if ($request->status === 'cancelled') {
+            foreach ($order->items as $item) {
+                $item->product->increment('stock_quantity', $item->quantity);
+                
+                // Registrar movimentação de estoque
+                $item->product->stockMovements()->create([
+                    'type' => 'in',
+                    'quantity' => $item->quantity,
+                    'reason' => 'Estorno - Pedido #' . $order->order_number . ' cancelado'
+                ]);
+            }
+
+            // Atualizar status do pagamento
+            if ($order->payment) {
+                $order->payment->update(['status' => 'failed']);
+            }
+        }
+
+        return response()->json($order->load(['items.product', 'user', 'payment']));
     }
 }

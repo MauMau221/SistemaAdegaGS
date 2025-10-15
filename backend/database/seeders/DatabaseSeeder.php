@@ -6,20 +6,45 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\StockMovement;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // Criar usuário admin
-        User::create([
+        // Criar usuários
+        $admin = User::create([
             'name' => 'Administrador',
             'email' => 'admin@adegags.com',
             'password' => bcrypt('12345678'),
             'type' => 'admin',
             'is_active' => true
         ]);
+
+        $employee = User::create([
+            'name' => 'Funcionário',
+            'email' => 'funcionario@adegags.com',
+            'password' => bcrypt('12345678'),
+            'type' => 'employee',
+            'is_active' => true,
+        ]);
+
+        // Criar alguns clientes
+        $customers = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $customers[] = User::create([
+                'name' => "Cliente {$i}",
+                'email' => "cliente{$i}@example.com",
+                'password' => bcrypt('12345678'),
+                'type' => 'customer',
+                'is_active' => true,
+                'phone' => "11 9999-999{$i}"
+            ]);
+        }
 
         // Criar categorias
         $categories = [
@@ -83,23 +108,29 @@ class DatabaseSeeder extends Seeder
                 'price' => 39.90,
                 'cost_price' => 30.00,
                 'stock_quantity' => 50,
-                'featured' => true
+                'min_stock_quantity' => 20,
+                'featured' => true,
+                'initial_stock' => 100
             ],
             [
                 'category_id' => 1,
                 'name' => 'Pack Cerveja Original Lata 350ml - 12 Unidades',
                 'price' => 45.90,
                 'cost_price' => 35.00,
-                'stock_quantity' => 40,
-                'featured' => true
+                'stock_quantity' => 5,
+                'min_stock_quantity' => 15,
+                'featured' => true,
+                'initial_stock' => 50
             ],
             [
                 'category_id' => 1,
                 'name' => 'Pack Cerveja Heineken Lata 350ml - 12 Unidades',
                 'price' => 52.90,
                 'cost_price' => 42.00,
-                'stock_quantity' => 30,
-                'featured' => true
+                'stock_quantity' => 0,
+                'min_stock_quantity' => 10,
+                'featured' => true,
+                'initial_stock' => 30
             ],
 
             // Pack Long Neck
@@ -109,7 +140,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 39.90,
                 'cost_price' => 30.00,
                 'stock_quantity' => 40,
-                'featured' => false
+                'min_stock_quantity' => 15,
+                'featured' => false,
+                'initial_stock' => 40
             ],
             [
                 'category_id' => 2,
@@ -117,7 +150,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 36.90,
                 'cost_price' => 28.00,
                 'stock_quantity' => 45,
-                'featured' => true
+                'min_stock_quantity' => 15,
+                'featured' => true,
+                'initial_stock' => 45
             ],
 
             // Bebidas Ice
@@ -126,8 +161,10 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Smirnoff Ice 275ml',
                 'price' => 9.90,
                 'cost_price' => 7.00,
-                'stock_quantity' => 100,
-                'featured' => true
+                'stock_quantity' => 8,
+                'min_stock_quantity' => 20,
+                'featured' => true,
+                'initial_stock' => 100
             ],
             [
                 'category_id' => 3,
@@ -135,7 +172,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 8.90,
                 'cost_price' => 6.50,
                 'stock_quantity' => 80,
-                'featured' => false
+                'min_stock_quantity' => 30,
+                'featured' => false,
+                'initial_stock' => 80
             ],
 
             // Energéticos
@@ -145,7 +184,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 9.90,
                 'cost_price' => 7.50,
                 'stock_quantity' => 100,
-                'featured' => true
+                'min_stock_quantity' => 50,
+                'featured' => true,
+                'initial_stock' => 100
             ],
             [
                 'category_id' => 5,
@@ -153,7 +194,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 11.90,
                 'cost_price' => 8.50,
                 'stock_quantity' => 80,
-                'featured' => true
+                'min_stock_quantity' => 40,
+                'featured' => true,
+                'initial_stock' => 80
             ],
 
             // Bebidas Quentes
@@ -162,8 +205,10 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Whisky Jack Daniels 1L',
                 'price' => 159.90,
                 'cost_price' => 120.00,
-                'stock_quantity' => 20,
-                'featured' => true
+                'stock_quantity' => 3,
+                'min_stock_quantity' => 5,
+                'featured' => true,
+                'initial_stock' => 20
             ],
             [
                 'category_id' => 6,
@@ -171,7 +216,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 89.90,
                 'cost_price' => 65.00,
                 'stock_quantity' => 30,
-                'featured' => false
+                'min_stock_quantity' => 10,
+                'featured' => false,
+                'initial_stock' => 30
             ],
             [
                 'category_id' => 6,
@@ -179,7 +226,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 129.90,
                 'cost_price' => 95.00,
                 'stock_quantity' => 25,
-                'featured' => true
+                'min_stock_quantity' => 8,
+                'featured' => true,
+                'initial_stock' => 25
             ],
 
             // Refrigerantes
@@ -189,7 +238,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 9.90,
                 'cost_price' => 7.00,
                 'stock_quantity' => 100,
-                'featured' => false
+                'min_stock_quantity' => 50,
+                'featured' => false,
+                'initial_stock' => 100
             ],
             [
                 'category_id' => 7,
@@ -197,7 +248,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 8.90,
                 'cost_price' => 6.00,
                 'stock_quantity' => 100,
-                'featured' => false
+                'min_stock_quantity' => 50,
+                'featured' => false,
+                'initial_stock' => 100
             ],
             [
                 'category_id' => 7,
@@ -205,7 +258,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 8.90,
                 'cost_price' => 6.00,
                 'stock_quantity' => 80,
-                'featured' => false
+                'min_stock_quantity' => 40,
+                'featured' => false,
+                'initial_stock' => 80
             ],
 
             // Sucos
@@ -215,7 +270,9 @@ class DatabaseSeeder extends Seeder
                 'price' => 7.90,
                 'cost_price' => 5.00,
                 'stock_quantity' => 60,
-                'featured' => false
+                'min_stock_quantity' => 30,
+                'featured' => false,
+                'initial_stock' => 60
             ],
             [
                 'category_id' => 8,
@@ -223,26 +280,112 @@ class DatabaseSeeder extends Seeder
                 'price' => 14.90,
                 'cost_price' => 10.00,
                 'stock_quantity' => 40,
-                'featured' => true
+                'min_stock_quantity' => 20,
+                'featured' => true,
+                'initial_stock' => 40
             ]
         ];
 
-        // Criar produtos
-        foreach ($products as $product) {
-            Product::create([
-                'category_id' => $product['category_id'],
-                'name' => $product['name'],
-                'slug' => Str::slug($product['name']),
-                'description' => $product['name'],
-                'price' => $product['price'],
-                'cost_price' => $product['cost_price'],
-                'stock_quantity' => $product['stock_quantity'],
-                'min_stock_quantity' => 10,
+        // Criar produtos e suas movimentações iniciais
+        $createdProducts = [];
+        foreach ($products as $productData) {
+            $initialStock = $productData['initial_stock'];
+            unset($productData['initial_stock']);
+
+            $product = Product::create([
+                'category_id' => $productData['category_id'],
+                'name' => $productData['name'],
+                'slug' => Str::slug($productData['name']),
+                'description' => $productData['name'],
+                'price' => $productData['price'],
+                'cost_price' => $productData['cost_price'],
+                'stock_quantity' => $productData['stock_quantity'],
+                'min_stock_quantity' => $productData['min_stock_quantity'],
                 'sku' => Str::upper(Str::random(8)),
                 'is_active' => true,
-                'featured' => $product['featured'],
+                'featured' => $productData['featured'],
                 'images' => []
             ]);
+
+            $createdProducts[] = $product;
+
+            // Criar movimentação inicial de estoque
+            StockMovement::create([
+                'product_id' => $product->id,
+                'user_id' => $admin->id,
+                'type' => 'entrada',
+                'quantity' => $initialStock,
+                'description' => 'Estoque inicial',
+                'unit_cost' => $productData['cost_price']
+            ]);
+
+            // Se o estoque atual for diferente do inicial, criar uma movimentação de saída
+            if ($initialStock != $productData['stock_quantity']) {
+                $saidaQuantity = $initialStock - $productData['stock_quantity'];
+                
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'user_id' => $employee->id,
+                    'type' => 'saida',
+                    'quantity' => $saidaQuantity,
+                    'description' => 'Vendas realizadas',
+                ]);
+            }
+        }
+
+        // Criar alguns pedidos
+        $statuses = ['pending', 'delivering', 'completed', 'cancelled'];
+        $paymentMethods = ['dinheiro', 'cartão de crédito', 'cartão de débito', 'pix'];
+
+        for ($i = 0; $i < 20; $i++) {
+            $customer = $customers[array_rand($customers)];
+            $status = $statuses[array_rand($statuses)];
+            $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
+            
+            // Criar pedido
+            $orderNumber = date('Ymd') . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
+            $order = Order::create([
+                'user_id' => $customer->id,
+                'order_number' => $orderNumber,
+                'status' => $status,
+                'total' => 0, // Será calculado após adicionar os itens
+            ]);
+
+            // Adicionar 1-5 itens aleatórios ao pedido
+            $numItems = rand(1, 5);
+            $total = 0;
+
+            for ($j = 0; $j < $numItems; $j++) {
+                $product = $createdProducts[array_rand($createdProducts)];
+                $quantity = rand(1, 3);
+                $subtotal = $product->price * $quantity;
+                $total += $subtotal;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'price' => $product->price,
+                    'subtotal' => $subtotal
+                ]);
+            }
+
+            // Atualizar o total do pedido
+            $order->update(['total' => $total]);
+
+            // Criar pagamento
+            Payment::create([
+                'order_id' => $order->id,
+                'amount' => $total,
+                'payment_method' => $paymentMethod,
+                'status' => $status === 'cancelled' ? 'failed' : 'completed'
+            ]);
+
+            // Definir data aleatória nos últimos 7 dias
+            $date = now()->subDays(rand(0, 7))->subHours(rand(0, 24));
+            $order->created_at = $date;
+            $order->updated_at = $date;
+            $order->save();
         }
     }
 }

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'category_id',
@@ -36,6 +35,8 @@ class Product extends Model
         'images' => 'array'
     ];
 
+    protected $appends = ['low_stock'];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -46,18 +47,36 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function updateStock($quantity, $operation = 'subtract')
+    public function stockMovements(): HasMany
     {
-        if ($operation === 'add') {
-            $this->stock_quantity += $quantity;
-        } else {
-            $this->stock_quantity -= $quantity;
-        }
-        $this->save();
+        return $this->hasMany(StockMovement::class);
     }
 
-    public function isLowStock()
+    public function getLowStockAttribute(): bool
     {
         return $this->stock_quantity <= $this->min_stock_quantity;
+    }
+
+    public function updateStock(int $quantity, string $type, ?string $description = null, ?float $unitCost = null): void
+    {
+        $movement = new StockMovement([
+            'user_id' => auth()->id(),
+            'type' => $type,
+            'quantity' => $quantity,
+            'description' => $description,
+            'unit_cost' => $unitCost
+        ]);
+
+        $this->stockMovements()->save($movement);
+
+        if ($type === 'entrada') {
+            $this->stock_quantity += $quantity;
+        } elseif ($type === 'saida') {
+            $this->stock_quantity -= $quantity;
+        } else { // ajuste
+            $this->stock_quantity = $quantity;
+        }
+
+        $this->save();
     }
 }
