@@ -67,7 +67,8 @@ class OrderController extends Controller
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 
-                if ($product->stock_quantity < $item['quantity']) {
+                $currentStock = $product->current_stock ?? $product->stock_quantity;
+                if ($currentStock < $item['quantity']) {
                     throw new \Exception("Produto {$product->name} não possui estoque suficiente");
                 }
 
@@ -81,13 +82,15 @@ class OrderController extends Controller
                 ]);
 
                 // Atualizar estoque
-                $product->decrement('stock_quantity', $item['quantity']);
+                $stockField = $product->getConnection()->getSchemaBuilder()->hasColumn($product->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
+                $product->decrement($stockField, $item['quantity']);
                 
                 // Registrar movimentação de estoque
                 $product->stockMovements()->create([
-                    'type' => 'out',
+                    'user_id' => auth()->id(),
+                    'type' => 'saida',
                     'quantity' => $item['quantity'],
-                    'reason' => 'Venda - Pedido #' . $order->order_number
+                    'description' => 'Venda - Pedido #' . $order->order_number
                 ]);
 
                 $total += $subtotal;
@@ -133,13 +136,15 @@ class OrderController extends Controller
         // Se o pedido for cancelado, estornar o estoque
         if ($request->status === 'cancelled') {
             foreach ($order->items as $item) {
-                $item->product->increment('stock_quantity', $item->quantity);
+                $stockField = $item->product->getConnection()->getSchemaBuilder()->hasColumn($item->product->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
+                $item->product->increment($stockField, $item->quantity);
                 
                 // Registrar movimentação de estoque
                 $item->product->stockMovements()->create([
-                    'type' => 'in',
+                    'user_id' => auth()->id(),
+                    'type' => 'entrada',
                     'quantity' => $item->quantity,
-                    'reason' => 'Estorno - Pedido #' . $order->order_number . ' cancelado'
+                    'description' => 'Estorno - Pedido #' . $order->order_number . ' cancelado'
                 ]);
             }
 

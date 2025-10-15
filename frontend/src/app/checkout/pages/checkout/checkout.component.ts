@@ -14,6 +14,7 @@ import { map } from 'rxjs/operators';
 import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrderService } from '../../../core/services/order.service';
+import { CepService } from '../../../core/services/cep.service';
 import { CartItem } from '../../../core/models/cart.model';
 import { User } from '../../../core/models/auth.model';
 
@@ -49,6 +50,7 @@ export class CheckoutComponent implements OnInit {
     private cartService: CartService,
     private authService: AuthService,
     private orderService: OrderService,
+    private cepService: CepService,
     private router: Router
   ) {
     this.deliveryForm = this.fb.group({
@@ -103,6 +105,45 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
+  /**
+   * Busca endereço pelo CEP
+   */
+  searchCep(): void {
+    const zipcode = this.deliveryForm.get('zipcode')?.value;
+    
+    if (!zipcode || !this.cepService.isValidCep(zipcode)) {
+      return;
+    }
+
+    this.loading = true;
+    
+    this.cepService.searchCep(zipcode).subscribe({
+      next: (cepData) => {
+        // Preenche automaticamente os campos do endereço
+        this.deliveryForm.patchValue({
+          address: cepData.street,
+          neighborhood: cepData.neighborhood,
+          city: cepData.city,
+          state: cepData.state
+        });
+        
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao buscar CEP:', error);
+        this.error = error.message || 'Erro ao buscar CEP';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Limpa erro quando o usuário começa a digitar
+   */
+  clearError(): void {
+    this.error = null;
+  }
+
   async onSubmit(): Promise<void> {
     if (this.deliveryForm.invalid || this.paymentForm.invalid) {
       this.error = 'Por favor, preencha todos os campos obrigatórios';
@@ -126,11 +167,20 @@ export class CheckoutComponent implements OnInit {
         return;
       }
 
+      // Mapear método de pagamento para o formato esperado pelo backend
+      const paymentMethodMap: { [key: string]: string } = {
+        'pix': 'pix',
+        'cash': 'dinheiro',
+        'card': 'cartão de débito'
+      };
+
       // Preparar dados do pedido
       const orderData = {
         type: 'online',
         delivery: this.deliveryForm.value,
-        payment: this.paymentForm.value,
+        payment_method: paymentMethodMap[this.paymentForm.value.method] || 'pix',
+        customer_name: this.deliveryForm.value.address,
+        customer_phone: this.deliveryForm.value.phone,
         items: items.map(item => ({
           product_id: item.product.id,
           quantity: item.quantity

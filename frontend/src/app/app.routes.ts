@@ -10,8 +10,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'login',
-        pathMatch: 'full'
+        loadComponent: () => import('./home/pages/home/home.component').then(m => m.HomeComponent)
       },
       {
         path: 'login',
@@ -20,6 +19,28 @@ export const routes: Routes = [
       {
         path: 'register',
         loadComponent: () => import('./auth/pages/register/register.component').then(m => m.RegisterComponent)
+      },
+      {
+        path: 'produtos',
+        loadComponent: () => import('./products/pages/product-list-page/product-list-page.component').then(m => m.ProductListPageComponent)
+      },
+      {
+        path: 'carrinho',
+        loadComponent: () => import('./store/components/cart/cart.component').then(m => m.CartComponent)
+      },
+      {
+        path: 'checkout',
+        loadComponent: () => import('./checkout/pages/checkout/checkout.component').then(m => m.CheckoutComponent)
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./profile/pages/profile/profile.component').then(m => m.ProfileComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: 'pedidos',
+        loadComponent: () => import('./orders/pages/orders-list/orders-list.component').then(m => m.OrdersListComponent),
+        canActivate: [authGuard]
       }
     ]
   },

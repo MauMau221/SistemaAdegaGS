@@ -97,10 +97,10 @@ class ProductController extends Controller
 
         // Criar movimento de estoque inicial
         $product->stockMovements()->create([
-            'type' => 'in',
+            'user_id' => auth()->id(),
+            'type' => 'entrada',
             'quantity' => $request->stock_quantity,
-            'reason' => 'Estoque inicial',
-            'user_id' => auth()->id()
+            'description' => 'Estoque inicial'
         ]);
 
         return response()->json($product, 201);

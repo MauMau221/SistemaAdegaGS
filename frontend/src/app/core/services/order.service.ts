@@ -13,8 +13,8 @@ export class OrderService {
   constructor(private http: HttpClient) {}
 
   getOrders(): Observable<Order[]> {
-    console.log('OrderService: Fetching orders from:', `${this.apiUrl}/orders`);
-    return this.http.get<Order[]>(`${this.apiUrl}/orders`);
+    console.log('OrderService: Fetching orders from:', `${this.apiUrl}/my-orders`);
+    return this.http.get<Order[]>(`${this.apiUrl}/my-orders`);
   }
 
   getOrder(id: number): Observable<Order> {

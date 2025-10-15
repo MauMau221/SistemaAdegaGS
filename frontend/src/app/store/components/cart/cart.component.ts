@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { CartService, CartItem } from '../../../core/services/cart.service';
+import { CartService } from '../../../core/services/cart.service';
+import { CartItem } from '../../../core/models/cart.model';
 
 @Component({
   selector: 'app-cart',
@@ -21,7 +22,7 @@ export class CartComponent {
   }
 
   updateQuantity(item: CartItem, newQuantity: number): void {
-    if (newQuantity > 0 && newQuantity <= item.product.stock_quantity) {
+    if (newQuantity > 0 && newQuantity <= item.product.current_stock) {
       this.cartService.updateQuantity(item.product.id, newQuantity);
     }
   }

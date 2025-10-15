@@ -37,6 +37,8 @@ O projeto está dividido em duas partes principais:
 - ✅ **Middleware de Acesso** por tipo de usuário
 - ✅ **Relatórios e Dashboard** com métricas
 - ✅ **Gestão de Estoque** em tempo real
+- ✅ **API de CEP** integrada no checkout
+- ✅ **Migrações limpas** e consolidadas
 - 🔄 Integração com Mercado Pago (em desenvolvimento)
 
 ### Frontend (Angular 17 - Standalone Components)
@@ -48,6 +50,7 @@ O projeto está dividido em duas partes principais:
 - ✅ **Controle de Caixa** com relatórios em PDF
 - ✅ **Gestão de Pedidos** em tempo real
 - ✅ **Sistema de Estoque** com movimentações
+- ✅ **API de CEP** para preenchimento automático de endereços
 
 ## 💻 Requisitos do Sistema
 
@@ -117,6 +120,9 @@ php artisan migrate
 
 # Execute os seeders para popular o banco com dados de teste
 php artisan db:seed
+
+# ALTERNATIVA: Para recriar o banco completamente (recomendado)
+# php artisan migrate:fresh --seed
 
 # Crie o link simbólico para storage (imagens)
 php artisan storage:link
@@ -230,6 +236,7 @@ A aplicação estará disponível em: `http://localhost:4200`
 1. **Backend**: `http://localhost:8000/api/products` deve retornar uma lista de produtos
 2. **Frontend**: `http://localhost:4200` deve carregar a página inicial
 3. **Login**: Use os usuários de teste (veja seção abaixo)
+4. **API de CEP**: Teste no checkout digitando um CEP válido (ex: 01310-100)
 
 ## ✨ Funcionalidades Implementadas
 
@@ -240,6 +247,7 @@ A aplicação estará disponível em: `http://localhost:4200`
 - ✅ **Carrinho de compras** lateral dinâmico
 - ✅ **Autenticação** (login e registro)
 - ✅ **Checkout completo** com formulário de entrega
+- ✅ **API de CEP** para preenchimento automático de endereços
 - ✅ **Seleção de pagamento** (PIX, Dinheiro, Cartão)
 - ✅ **Header responsivo** estilo Zé Delivery
 - ✅ **Persistência do carrinho** no localStorage
@@ -372,6 +380,156 @@ adega/
 | PUT | `/api/admin/users/{id}` | Atualizar usuário |
 | DELETE | `/api/admin/users/{id}` | Deletar usuário |
 
+## 🌐 Deploy em Servidor de Produção
+
+### Requisitos do Servidor
+
+- **PHP**: 8.1+ com extensões necessárias
+- **MySQL**: 8.0+ ou MariaDB 10.3+
+- **Node.js**: 18+ (para build do frontend)
+- **Nginx/Apache**: Para servir os arquivos
+- **SSL**: Certificado HTTPS obrigatório
+
+### Configuração do Backend (Produção)
+
+```bash
+# 1. Clone e configure o repositório
+git clone https://github.com/seu-usuario/adega.git
+cd adega/backend
+
+# 2. Instale dependências
+composer install --no-dev --optimize-autoloader
+
+# 3. Configure o ambiente
+cp .env.example .env
+# Edite o .env com as configurações de produção
+
+# 4. Configure as variáveis de produção
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://seudominio.com
+
+# Banco de dados de produção
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=adega_gs_prod
+DB_USERNAME=usuario_prod
+DB_PASSWORD=senha_segura_prod
+
+# Cache e sessão
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+# 5. Execute as configurações
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed --class=ProductionSeeder
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# 6. Configure permissões
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+```
+
+### Configuração do Frontend (Produção)
+
+```bash
+# 1. Entre na pasta frontend
+cd ../frontend
+
+# 2. Instale dependências
+npm ci --only=production
+
+# 3. Configure o environment de produção
+# Edite src/environments/environment.prod.ts:
+export const environment = {
+  production: true,
+  apiUrl: 'https://seudominio.com/api',
+  sanctumUrl: 'https://seudominio.com/sanctum'
+};
+
+# 4. Build para produção
+ng build --configuration=production
+
+# 5. Os arquivos estarão em dist/adega/
+# Copie para o diretório web do servidor
+```
+
+### Configuração do Nginx
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name seudominio.com;
+    root /var/www/adega/backend/public;
+    index index.php;
+
+    # SSL
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+
+    # Frontend (Angular)
+    location / {
+        try_files $uri $uri/ /index.html;
+        root /var/www/adega/frontend/dist/adega;
+    }
+
+    # Backend API
+    location /api {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location /sanctum {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+}
+```
+
+### Configurações de Segurança
+
+1. **Firewall**: Bloquear portas desnecessárias
+2. **Backup**: Configure backup automático do banco
+3. **Logs**: Monitore logs de erro do Laravel
+4. **SSL**: Use HTTPS obrigatório
+5. **CORS**: Configure domínios permitidos
+6. **Rate Limiting**: Implemente limitação de requisições
+
+### Monitoramento
+
+```bash
+# Logs do Laravel
+tail -f storage/logs/laravel.log
+
+# Logs do Nginx
+tail -f /var/log/nginx/access.log
+tail -f /var/log/nginx/error.log
+
+# Status do PHP-FPM
+systemctl status php8.1-fpm
+
+# Status do MySQL
+systemctl status mysql
+```
+
 ## 👥 Usuários de Teste
 
 O seeder cria automaticamente usuários para teste:
@@ -494,13 +652,16 @@ npm install ng2-charts chart.js
 ## 📝 Notas Importantes
 
 1. **Banco de Dados**: Certifique-se de criar o banco `adega_gs` antes de rodar as migrations
-2. **Seeders**: Populam o banco com dados de exemplo (produtos, categorias, usuários, pedidos)
-3. **Imagens**: Coloque as imagens dos produtos em `backend/storage/app/public/images/`
-4. **CORS**: Configurado para aceitar requisições do frontend em `localhost:4200`
-5. **Autenticação**: Sanctum com tokens Bearer
-6. **Tipos de Usuário**: Admin, Funcionário, Cliente com permissões específicas
-7. **Angular**: Usa Standalone Components (sem módulos tradicionais)
-8. **Laravel**: Versão 10 com Sanctum para autenticação
+2. **Migrações**: Sistema consolidado e limpo - use `migrate:fresh --seed` quando necessário
+3. **Seeders**: Populam o banco com dados de exemplo (produtos, categorias, usuários, pedidos)
+4. **Imagens**: Coloque as imagens dos produtos em `backend/storage/app/public/images/`
+5. **CORS**: Configurado para aceitar requisições do frontend em `localhost:4200`
+6. **Autenticação**: Sanctum com tokens Bearer
+7. **API de CEP**: Integrada com ViaCEP para preenchimento automático de endereços
+8. **Tipos de Usuário**: Admin, Funcionário, Cliente com permissões específicas
+9. **Angular**: Usa Standalone Components (sem módulos tradicionais)
+10. **Laravel**: Versão 10 com Sanctum para autenticação
+11. **Estoque**: Sistema unificado com `current_stock` sincronizado com `stock_quantity`
 
 ## 🚀 Checklist de Instalação
 
@@ -513,12 +674,15 @@ npm install ng2-charts chart.js
 - [ ] Dependências do backend instaladas (`composer install`)
 - [ ] Dependências do frontend instaladas (`npm install`)
 - [ ] Arquivo `.env` configurado
-- [ ] Migrations executadas (`php artisan migrate`)
+- [ ] Migrations executadas (`php artisan migrate` ou `php artisan migrate:fresh --seed`)
 - [ ] Seeders executados (`php artisan db:seed`)
 - [ ] Storage link criado (`php artisan storage:link`)
+- [ ] Cache limpo (`php artisan config:clear && php artisan cache:clear`)
 - [ ] Servidor Laravel rodando (`php artisan serve`)
 - [ ] Servidor Angular rodando (`ng serve`)
 - [ ] Teste de login realizado
+- [ ] Teste da API de CEP realizado
+- [ ] Teste de finalização de pedido realizado
 
 ## 📄 Licença
 
@@ -526,3 +690,20 @@ Este projeto é privado e de uso interno.
 
 
 **Última atualização**: Janeiro 2025
+
+## 📋 Changelog
+
+### v1.1.0 - Janeiro 2025
+- ✅ **Migrações consolidadas** - Sistema limpo sem tabelas auxiliares
+- ✅ **API de CEP** - Integração com ViaCEP no checkout
+- ✅ **Correções de estoque** - Sincronização entre `current_stock` e `stock_quantity`
+- ✅ **Correções de banco** - Campo `user_id` nullable em `stock_movements`
+- ✅ **Warnings corrigidos** - Optional chaining otimizado no dashboard
+- ✅ **Documentação atualizada** - Guia completo de produção
+- ✅ **Troubleshooting expandido** - Soluções para problemas comuns
+
+### v1.0.0 - Janeiro 2025
+- ✅ **Sistema completo** - E-commerce + Admin + Funcionário
+- ✅ **Autenticação Sanctum** - Sistema robusto de autenticação
+- ✅ **Interface moderna** - Angular Material + design responsivo
+- ✅ **API RESTful** - Backend Laravel completo

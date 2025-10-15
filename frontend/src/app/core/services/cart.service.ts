@@ -205,6 +205,10 @@ export class CartService {
     });
   }
 
+  getTotal(): number {
+    return this.cartState.value?.total || 0;
+  }
+
   async finishOrder(orderData: any): Promise<any> {
     try {
       // Verificar se está autenticado

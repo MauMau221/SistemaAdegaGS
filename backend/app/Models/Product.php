@@ -18,6 +18,8 @@ class Product extends Model
         'cost_price',
         'stock_quantity',
         'min_stock_quantity',
+        'current_stock',
+        'min_stock',
         'sku',
         'barcode',
         'is_active',
@@ -30,6 +32,8 @@ class Product extends Model
         'cost_price' => 'decimal:2',
         'stock_quantity' => 'integer',
         'min_stock_quantity' => 'integer',
+        'current_stock' => 'integer',
+        'min_stock' => 'integer',
         'is_active' => 'boolean',
         'featured' => 'boolean',
         'images' => 'array'
@@ -54,7 +58,9 @@ class Product extends Model
 
     public function getLowStockAttribute(): bool
     {
-        return $this->stock_quantity <= $this->min_stock_quantity;
+        $currentStock = $this->current_stock ?? $this->stock_quantity;
+        $minStock = $this->min_stock ?? $this->min_stock_quantity;
+        return $currentStock <= $minStock;
     }
 
     public function updateStock(int $quantity, string $type, ?string $description = null, ?float $unitCost = null): void
@@ -69,14 +75,15 @@ class Product extends Model
 
         $this->stockMovements()->save($movement);
 
-        if ($type === 'entrada') {
-            $this->stock_quantity += $quantity;
-        } elseif ($type === 'saida') {
-            $this->stock_quantity -= $quantity;
-        } else { // ajuste
-            $this->stock_quantity = $quantity;
-        }
+        // Usar current_stock se disponível, senão usar stock_quantity
+        $stockField = $this->getConnection()->getSchemaBuilder()->hasColumn($this->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
 
-        $this->save();
+        if ($type === 'entrada') {
+            $this->increment($stockField, $quantity);
+        } elseif ($type === 'saida') {
+            $this->decrement($stockField, $quantity);
+        } else { // ajuste
+            $this->update([$stockField => $quantity]);
+        }
     }
 }

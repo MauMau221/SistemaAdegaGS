@@ -27,15 +27,15 @@
           <div class="card-stats">
             <div class="stat">
               <span class="label">Hoje</span>
-              <span class="value">{{summary?.sales?.today ? formatCurrency(summary.sales.today) : 'R$ 0,00'}}</span>
+              <span class="value">{{summary ? formatCurrency(summary.sales.today) : 'R$ 0,00'}}</span>
             </div>
             <div class="stat">
               <span class="label">Este Mês</span>
-              <span class="value">{{summary?.sales?.month ? formatCurrency(summary.sales.month) : 'R$ 0,00'}}</span>
+              <span class="value">{{summary ? formatCurrency(summary.sales.month) : 'R$ 0,00'}}</span>
             </div>
             <div class="stat">
               <span class="label">Ticket Médio</span>
-              <span class="value">{{summary?.sales?.average_ticket ? formatCurrency(summary.sales.average_ticket) : 'R$ 0,00'}}</span>
+              <span class="value">{{summary ? formatCurrency(summary.sales.average_ticket) : 'R$ 0,00'}}</span>
             </div>
           </div>
         </mat-card-content>
@@ -51,17 +51,17 @@
           <div class="card-stats">
             <div class="stat">
               <span class="label">Pendentes</span>
-              <span class="value" [style.color]="getStatusColor(summary?.orders?.pending || 0, 5)">
-                {{summary?.orders?.pending || 0}}
+              <span class="value" [style.color]="getStatusColor(summary ? summary.orders.pending : 0, 5)">
+                {{summary ? summary.orders.pending : 0}}
               </span>
             </div>
             <div class="stat">
               <span class="label">Em Entrega</span>
-              <span class="value">{{summary?.orders?.delivering || 0}}</span>
+              <span class="value">{{summary ? summary.orders.delivering : 0}}</span>
             </div>
             <div class="stat">
               <span class="label">Concluídos</span>
-              <span class="value">{{summary?.orders?.completed || 0}}</span>
+              <span class="value">{{summary ? summary.orders.completed : 0}}</span>
             </div>
           </div>
         </mat-card-content>
@@ -77,17 +77,17 @@
           <div class="card-stats">
             <div class="stat">
               <span class="label">Produtos</span>
-              <span class="value">{{summary?.stock?.total_products || 0}}</span>
+              <span class="value">{{summary ? summary.stock.total_products : 0}}</span>
             </div>
             <div class="stat">
               <span class="label">Estoque Baixo</span>
-              <span class="value" [style.color]="getStatusColor(summary?.stock?.low_stock_count || 0, 10)">
-                {{summary?.stock?.low_stock_count || 0}}
+              <span class="value" [style.color]="getStatusColor(summary ? summary.stock.low_stock_count : 0, 10)">
+                {{summary ? summary.stock.low_stock_count : 0}}
               </span>
             </div>
             <div class="stat">
               <span class="label">Valor Total</span>
-              <span class="value">{{summary?.stock?.total_value ? formatCurrency(summary.stock.total_value) : 'R$ 0,00'}}</span>
+              <span class="value">{{summary ? formatCurrency(summary.stock.total_value) : 'R$ 0,00'}}</span>
             </div>
           </div>
         </mat-card-content>
@@ -103,15 +103,15 @@
           <div class="card-stats">
             <div class="stat">
               <span class="label">Total</span>
-              <span class="value">{{summary?.users?.total || 0}}</span>
+              <span class="value">{{summary ? summary.users.total : 0}}</span>
             </div>
             <div class="stat">
               <span class="label">Novos (Mês)</span>
-              <span class="value">{{summary?.users?.new_this_month || 0}}</span>
+              <span class="value">{{summary ? summary.users.new_this_month : 0}}</span>
             </div>
             <div class="stat">
               <span class="label">Clientes</span>
-              <span class="value">{{summary?.users?.customers || 0}}</span>
+              <span class="value">{{summary ? summary.users.customers : 0}}</span>
             </div>
           </div>
         </mat-card-content>

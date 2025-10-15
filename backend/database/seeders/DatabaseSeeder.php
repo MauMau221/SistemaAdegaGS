@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Heineken Lata 350ml - 12 Unidades',
                 'price' => 52.90,
                 'cost_price' => 42.00,
-                'stock_quantity' => 0,
+                'stock_quantity' => 10,
                 'min_stock_quantity' => 10,
                 'featured' => true,
                 'initial_stock' => 30
@@ -301,6 +301,8 @@ class DatabaseSeeder extends Seeder
                 'cost_price' => $productData['cost_price'],
                 'stock_quantity' => $productData['stock_quantity'],
                 'min_stock_quantity' => $productData['min_stock_quantity'],
+                'current_stock' => $productData['stock_quantity'], // Sincronizar campos
+                'min_stock' => $productData['min_stock_quantity'], // Sincronizar campos
                 'sku' => Str::upper(Str::random(8)),
                 'is_active' => true,
                 'featured' => $productData['featured'],

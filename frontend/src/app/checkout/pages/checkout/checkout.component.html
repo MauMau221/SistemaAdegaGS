@@ -44,12 +44,21 @@
       <mat-step label="Endereço de Entrega" [stepControl]="deliveryForm">
         <form [formGroup]="deliveryForm">
           <div class="form-grid">
-            <mat-form-field>
-              <mat-label>CEP</mat-label>
-              <input matInput formControlName="zipcode" placeholder="00000-000" (input)="formatZipcode($event)">
-              <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['required']">CEP é obrigatório</mat-error>
-              <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['pattern']">CEP inválido</mat-error>
-            </mat-form-field>
+            <div class="cep-field">
+              <mat-form-field class="cep-input">
+                <mat-label>CEP</mat-label>
+                <input matInput formControlName="zipcode" placeholder="00000-000" (input)="formatZipcode($event); clearError()">
+                <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['required']">CEP é obrigatório</mat-error>
+                <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['pattern']">CEP inválido</mat-error>
+              </mat-form-field>
+              <button mat-raised-button color="primary" (click)="searchCep()" 
+                      [disabled]="!deliveryForm.get('zipcode')?.value || deliveryForm.get('zipcode')?.errors || loading"
+                      class="cep-button">
+                <mat-icon>search</mat-icon>
+                <span *ngIf="!loading">Buscar</span>
+                <span *ngIf="loading">Buscando...</span>
+              </button>
+            </div>
 
             <mat-form-field>
               <mat-label>Endereço</mat-label>
