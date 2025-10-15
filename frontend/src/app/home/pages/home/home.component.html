@@ -1,0 +1,139 @@
+<div class="home-container">
+  <!-- Banner Principal -->
+  <section class="main-banner">
+    <div class="container">
+      <div class="banner-content">
+        <h1>ADEGA GS</h1>
+        <p>Delivery de bebidas na sua porta</p>
+        <button routerLink="/produtos" class="cta-button">
+          Peça Agora!
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu de Categorias -->
+  <section class="categories-menu">
+    <div class="container">
+      <div class="section-header">
+        <h2>Nosso Menu</h2>
+        <a routerLink="/produtos" class="view-all">Ver Tudo</a>
+      </div>
+      
+      <!-- Loading State -->
+      <div *ngIf="loading.categories" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error.categories" class="error-message">
+        {{ error.categories }}
+      </div>
+
+      <!-- Categories Grid -->
+      <div *ngIf="!loading.categories && !error.categories" class="categories-grid">
+        <a *ngFor="let category of categories; trackBy: trackByCategoryId" 
+           [routerLink]="['/produtos']" 
+           [queryParams]="{categoria: category.id}" 
+           class="category-card">
+          <div class="category-icon">
+            <img [src]="'assets/images/no-image.jpg'" [alt]="category.name">
+          </div>
+          <span class="category-name">{{ category.name }}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Produtos em Destaque -->
+  <section class="featured-products">
+    <div class="container">
+      <div class="section-header">
+        <h2>Itens Em Destaque</h2>
+        <a routerLink="/produtos" class="view-all">Ver Mais</a>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading.featured" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error.featured" class="error-message">
+        {{ error.featured }}
+      </div>
+
+      <!-- Products Grid -->
+      <div *ngIf="!loading.featured && !error.featured" class="products-grid">
+        <div *ngFor="let product of featuredProducts; trackBy: trackByProductId" 
+             class="product-card">
+          <div class="product-image">
+            <img [src]="'assets/images/no-image.jpg'" [alt]="product.name">
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-price-action">
+              <span class="price">R$ {{ product.price | number:'1.2-2' }}</span>
+              <button (click)="addToCart(product)" class="add-to-cart">
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading.featured && !error.featured && featuredProducts.length === 0" 
+           class="empty-state">
+        Nenhum produto em destaque disponível.
+      </div>
+    </div>
+  </section>
+
+  <!-- Produtos Populares -->
+  <section class="popular-products">
+    <div class="container">
+      <div class="section-header">
+        <h2>Itens Mais Populares</h2>
+        <a routerLink="/produtos" class="view-all">Ver Mais</a>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading.popular" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error.popular" class="error-message">
+        {{ error.popular }}
+      </div>
+
+      <!-- Products Grid -->
+      <div *ngIf="!loading.popular && !error.popular" class="products-grid">
+        <div *ngFor="let product of popularProducts; trackBy: trackByProductId" 
+             class="product-card">
+          <div class="product-image">
+            <img [src]="'assets/images/no-image.jpg'" [alt]="product.name">
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-price-action">
+              <span class="price">R$ {{ product.price | number:'1.2-2' }}</span>
+              <button (click)="addToCart(product)" class="add-to-cart">
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading.popular && !error.popular && popularProducts.length === 0" 
+           class="empty-state">
+        Nenhum produto popular disponível.
+      </div>
+    </div>
+  </section>
+</div>

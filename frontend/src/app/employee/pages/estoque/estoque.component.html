@@ -1,0 +1,140 @@
+<div class="estoque-container">
+  <h1>Controle de Estoque</h1>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando produtos...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="estoque-content">
+    <!-- Resumo do Estoque -->
+    <div class="summary-cards" *ngIf="summary">
+      <mat-card>
+        <mat-card-content>
+          <div class="summary-item">
+            <span class="summary-value">{{summary.total_products}}</span>
+            <span class="summary-label">Total de Produtos</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card [class.warning]="summary.low_stock_count > 0">
+        <mat-card-content>
+          <div class="summary-item">
+            <span class="summary-value">{{summary.low_stock_count}}</span>
+            <span class="summary-label">Produtos com Estoque Baixo</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card [class.danger]="summary.out_of_stock_count > 0">
+        <mat-card-content>
+          <div class="summary-item">
+            <span class="summary-value">{{summary.out_of_stock_count}}</span>
+            <span class="summary-label">Produtos sem Estoque</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <div class="summary-item">
+            <span class="summary-value">{{formatCurrency(summary.total_value)}}</span>
+            <span class="summary-label">Valor Total em Estoque</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Filtros -->
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters">
+          <mat-form-field appearance="outline">
+            <mat-label>Buscar produtos</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Nome, SKU ou código de barras">
+            <button mat-icon-button matSuffix (click)="onSearch()">
+              <mat-icon>search</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <button mat-raised-button [color]="showLowStock ? 'warn' : 'primary'" (click)="toggleLowStock()">
+            <mat-icon>warning</mat-icon>
+            {{showLowStock ? 'Mostrar Todos' : 'Estoque Baixo'}}
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Lista de Produtos -->
+    <mat-card class="products-card">
+      <mat-card-content>
+        <table mat-table [dataSource]="products" class="products-table">
+          <!-- Nome -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Produto</th>
+            <td mat-cell *matCellDef="let product">
+              {{product.name}}
+              <span class="sku" *ngIf="product.sku">{{product.sku}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Categoria -->
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Categoria</th>
+            <td mat-cell *matCellDef="let product">{{product.category?.name}}</td>
+          </ng-container>
+
+          <!-- Estoque -->
+          <ng-container matColumnDef="stock_quantity">
+            <th mat-header-cell *matHeaderCellDef>Estoque</th>
+            <td mat-cell *matCellDef="let product">
+              <span [style.color]="getStockColor(product.stock_quantity, product.min_stock_quantity || 0)">
+                {{product.stock_quantity}}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Preço -->
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Preço</th>
+            <td mat-cell *matCellDef="let product">{{formatCurrency(product.price)}}</td>
+          </ng-container>
+
+          <!-- Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Ações</th>
+            <td mat-cell *matCellDef="let product">
+              <button mat-icon-button 
+                      color="primary" 
+                      (click)="openStockMovement(product)"
+                      matTooltip="Movimentar Estoque">
+                <mat-icon>swap_horiz</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Paginação -->
+        <mat-paginator
+          [length]="totalItems"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[15, 30, 50]"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+
+        <!-- Empty State -->
+        <div *ngIf="products.length === 0" class="empty-state">
+          <mat-icon>inventory_2</mat-icon>
+          <p>Nenhum produto encontrado</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

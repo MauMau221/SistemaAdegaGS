@@ -1,0 +1,32 @@
+.product-info {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.product-info h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.sku {
+  margin: 5px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.stock {
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+mat-form-field {
+  width: 100%;
+}

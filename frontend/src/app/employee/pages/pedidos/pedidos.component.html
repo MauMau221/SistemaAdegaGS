@@ -1,0 +1,172 @@
+<div class="pedidos-container">
+  <h1>Controle de Pedidos</h1>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando pedidos...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="pedidos-content">
+    <!-- Filtros -->
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <mat-button-toggle-group [value]="selectedStatus" (change)="onStatusFilterChange($event.value)">
+          <mat-button-toggle value="all">
+            <div class="toggle-content">
+              <span>Todos</span>
+              <mat-badge *ngIf="orders.length" 
+                        [matBadge]="orders.length" 
+                        matBadgePosition="above after"
+                        matBadgeSize="small">
+              </mat-badge>
+            </div>
+          </mat-button-toggle>
+          <mat-button-toggle value="pending">
+            <div class="toggle-content">
+              <span>Pendentes</span>
+              <mat-badge *ngIf="getPendingCount()" 
+                        [matBadge]="getPendingCount()"
+                        matBadgeColor="warn"
+                        matBadgePosition="above after"
+                        matBadgeSize="small">
+              </mat-badge>
+            </div>
+          </mat-button-toggle>
+          <mat-button-toggle value="delivering">
+            <div class="toggle-content">
+              <span>Em Entrega</span>
+              <mat-badge *ngIf="getDeliveringCount()"
+                        [matBadge]="getDeliveringCount()"
+                        matBadgeColor="primary"
+                        matBadgePosition="above after"
+                        matBadgeSize="small">
+              </mat-badge>
+            </div>
+          </mat-button-toggle>
+          <mat-button-toggle value="completed">
+            <div class="toggle-content">
+              <span>Concluídos</span>
+              <mat-badge *ngIf="getCompletedCount()"
+                        [matBadge]="getCompletedCount()"
+                        matBadgeColor="accent"
+                        matBadgePosition="above after"
+                        matBadgeSize="small">
+              </mat-badge>
+            </div>
+          </mat-button-toggle>
+          <mat-button-toggle value="cancelled">
+            <div class="toggle-content">
+              <span>Cancelados</span>
+              <mat-badge *ngIf="getCancelledCount()"
+                        [matBadge]="getCancelledCount()"
+                        matBadgePosition="above after"
+                        matBadgeSize="small">
+              </mat-badge>
+            </div>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Lista de Pedidos -->
+    <mat-card class="orders-card">
+      <mat-card-content>
+        <table mat-table [dataSource]="filteredOrders" class="orders-table">
+          <!-- ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>Pedido</th>
+            <td mat-cell *matCellDef="let order">#{{order.order_number || order.id}}</td>
+          </ng-container>
+
+          <!-- Data -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef>Data</th>
+            <td mat-cell *matCellDef="let order">{{formatDate(order.created_at)}}</td>
+          </ng-container>
+
+          <!-- Cliente -->
+          <ng-container matColumnDef="customer">
+            <th mat-header-cell *matHeaderCellDef>Cliente</th>
+            <td mat-cell *matCellDef="let order">
+              <div class="customer-info">
+                <span class="name">{{order.user.name}}</span>
+                <span class="email">{{order.user.email}}</span>
+                <span *ngIf="order.user.phone" class="phone">{{order.user.phone}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Itens -->
+          <ng-container matColumnDef="items">
+            <th mat-header-cell *matHeaderCellDef>Itens</th>
+            <td mat-cell *matCellDef="let order">
+              <div class="items-preview">
+                <span class="items-count">{{order.items.length}} {{order.items.length === 1 ? 'item' : 'itens'}}</span>
+                <div class="items-summary">
+                  <ng-container *ngFor="let item of order.items.slice(0, 2)">
+                    <small>{{item.quantity}}x {{item.product.name}}</small>
+                  </ng-container>
+                  <small *ngIf="order.items.length > 2">...</small>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Total -->
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Total</th>
+            <td mat-cell *matCellDef="let order">{{formatCurrency(order.total)}}</td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let order">
+              <mat-chip [style.background-color]="getStatusColor(order.status)"
+                       [style.color]="'white'">
+                {{getStatusLabel(order.status)}}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Ações</th>
+            <td mat-cell *matCellDef="let order">
+              <button mat-icon-button 
+                      color="primary" 
+                      (click)="showDetails(order)"
+                      matTooltip="Ver Detalhes">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button 
+                      color="accent" 
+                      (click)="updateStatus(order)"
+                      [disabled]="order.status === 'completed' || order.status === 'cancelled'"
+                      matTooltip="Atualizar Status">
+                <mat-icon>update</mat-icon>
+              </button>
+              <button mat-icon-button 
+                      color="basic" 
+                      (click)="printOrder(order)"
+                      matTooltip="Imprimir Pedido">
+                <mat-icon>print</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredOrders.length === 0" class="empty-state">
+          <mat-icon>receipt_long</mat-icon>
+          <p>Nenhum pedido encontrado</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

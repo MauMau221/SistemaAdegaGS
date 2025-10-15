@@ -1,0 +1,128 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Criar Conta</h1>
+      <p>Cadastre-se para fazer seus pedidos</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Error Message -->
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
+
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name">Nome completo</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="Seu nome completo"
+          [class.invalid]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+        >
+        <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched" class="error-hint">
+          <span *ngIf="registerForm.get('name')?.errors?.['required']">Nome é obrigatório</span>
+          <span *ngIf="registerForm.get('name')?.errors?.['minlength']">Nome deve ter no mínimo 3 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Seu e-mail"
+          [class.invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+        >
+        <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error-hint">
+          <span *ngIf="registerForm.get('email')?.errors?.['required']">E-mail é obrigatório</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['email']">E-mail inválido</span>
+        </div>
+      </div>
+
+      <!-- Phone Field -->
+      <div class="form-group">
+        <label for="phone">Telefone</label>
+        <input
+          type="text"
+          id="phone"
+          formControlName="phone"
+          placeholder="(00) 00000-0000"
+          (input)="formatPhone($event)"
+          [class.invalid]="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched"
+        >
+        <div *ngIf="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched" class="error-hint">
+          <span *ngIf="registerForm.get('phone')?.errors?.['required']">Telefone é obrigatório</span>
+          <span *ngIf="registerForm.get('phone')?.errors?.['pattern']">Telefone inválido</span>
+        </div>
+      </div>
+
+      <!-- Document Field -->
+      <div class="form-group">
+        <label for="document_number">CPF</label>
+        <input
+          type="text"
+          id="document_number"
+          formControlName="document_number"
+          placeholder="000.000.000-00"
+          (input)="formatDocument($event)"
+          [class.invalid]="registerForm.get('document_number')?.invalid && registerForm.get('document_number')?.touched"
+        >
+        <div *ngIf="registerForm.get('document_number')?.invalid && registerForm.get('document_number')?.touched" class="error-hint">
+          <span *ngIf="registerForm.get('document_number')?.errors?.['required']">CPF é obrigatório</span>
+          <span *ngIf="registerForm.get('document_number')?.errors?.['pattern']">CPF inválido</span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          placeholder="Sua senha"
+          [class.invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+        >
+        <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-hint">
+          <span *ngIf="registerForm.get('password')?.errors?.['required']">Senha é obrigatória</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Senha deve ter no mínimo 8 caracteres</span>
+        </div>
+      </div>
+
+      <!-- Password Confirmation Field -->
+      <div class="form-group">
+        <label for="password_confirmation">Confirmar senha</label>
+        <input
+          type="password"
+          id="password_confirmation"
+          formControlName="password_confirmation"
+          placeholder="Confirme sua senha"
+          [class.invalid]="registerForm.get('password_confirmation')?.invalid && registerForm.get('password_confirmation')?.touched || registerForm.errors?.['mismatch']"
+        >
+        <div *ngIf="(registerForm.get('password_confirmation')?.invalid && registerForm.get('password_confirmation')?.touched) || registerForm.errors?.['mismatch']" class="error-hint">
+          <span *ngIf="registerForm.get('password_confirmation')?.errors?.['required']">Confirmação de senha é obrigatória</span>
+          <span *ngIf="registerForm.errors?.['mismatch']">As senhas não conferem</span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="submit-button" 
+        [disabled]="registerForm.invalid || loading"
+      >
+        <span *ngIf="!loading">Criar conta</span>
+        <span *ngIf="loading">Criando conta...</span>
+      </button>
+
+      <!-- Login Link -->
+      <div class="auth-links">
+        <p>Já tem uma conta? <a routerLink="/login">Faça login</a></p>
+      </div>
+    </form>
+  </div>
+</div>

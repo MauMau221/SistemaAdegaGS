@@ -1,0 +1,103 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-8">Carrinho de Compras</h1>
+
+  <ng-container *ngIf="(cartItems$ | async)?.length; else emptyCart">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Lista de Itens -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-4" *ngFor="let item of cartItems$ | async">
+          <div class="flex items-center">
+            <!-- Imagem -->
+            <img 
+              [src]="item.product.images?.[0] || 'assets/images/no-image.jpg'"
+              [alt]="item.product.name"
+              class="w-20 h-20 object-cover rounded">
+
+            <!-- Informações -->
+            <div class="flex-1 ml-4">
+              <h3 class="text-lg font-semibold">{{ item.product.name }}</h3>
+              <p class="text-gray-600">{{ item.product.price | number:'1.2-2' }}</p>
+            </div>
+
+            <!-- Quantidade -->
+            <div class="flex items-center gap-2">
+              <button 
+                class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                (click)="updateQuantity(item, item.quantity - 1)">
+                -
+              </button>
+              <span class="w-12 text-center">{{ item.quantity }}</span>
+              <button 
+                class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                (click)="updateQuantity(item, item.quantity + 1)"
+                [disabled]="item.quantity >= item.product.stock_quantity">
+                +
+              </button>
+            </div>
+
+            <!-- Subtotal e Remover -->
+            <div class="ml-8 text-right">
+              <p class="text-lg font-semibold">
+                {{ (item.quantity * item.product.price) | number:'1.2-2' }}
+              </p>
+              <button 
+                class="text-red-600 text-sm mt-2"
+                (click)="removeItem(item)">
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+          <h2 class="text-lg font-semibold mb-4">Resumo do Pedido</h2>
+
+          <div class="flex justify-between mb-2">
+            <span>Subtotal</span>
+            <span>{{ getTotal() | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="flex justify-between mb-2">
+            <span>Frete</span>
+            <span class="text-green-600">Grátis</span>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="flex justify-between mb-6">
+            <span class="font-semibold">Total</span>
+            <span class="font-semibold">{{ getTotal() | number:'1.2-2' }}</span>
+          </div>
+
+          <button 
+            class="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors mb-4"
+            (click)="checkout()">
+            Finalizar Compra
+          </button>
+
+          <button 
+            class="w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            (click)="continueShopping()">
+            Continuar Comprando
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Carrinho Vazio -->
+  <ng-template #emptyCart>
+    <div class="text-center py-12">
+      <h2 class="text-2xl font-semibold mb-4">Seu carrinho está vazio</h2>
+      <p class="text-gray-600 mb-8">Adicione alguns produtos para começar suas compras</p>
+      <button 
+        class="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        (click)="continueShopping()">
+        Explorar Produtos
+      </button>
+    </div>
+  </ng-template>
+</div>

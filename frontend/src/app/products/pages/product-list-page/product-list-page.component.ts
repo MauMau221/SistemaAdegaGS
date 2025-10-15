@@ -1,0 +1,114 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { ProductSearchComponent } from '../../components/product-search/product-search.component';
+import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
+import { Product, Category } from '../../../core/models/product.model';
+
+@Component({
+  selector: 'app-product-list-page',
+  templateUrl: './product-list-page.component.html',
+  styleUrls: ['./product-list-page.component.css'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    ProductSearchComponent
+  ]
+})
+export class ProductListPageComponent implements OnInit {
+  products: Product[] = [];
+  categories: Category[] = [];
+  loading = true;
+  selectedCategory: number | null = null;
+  searchTerm: string = '';
+  error: string | null = null;
+  viewMode: 'grid' | 'list' = 'grid';
+  dietFilter: 'vegetariano' | 'nao-vegetariano' | null = null;
+
+  constructor(
+    private productService: ProductService,
+    private cartService: CartService,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    console.log('ProductListPageComponent initialized');
+    this.loadCategories();
+    this.route.queryParams.subscribe(params => {
+      console.log('Query params:', params);
+      this.selectedCategory = params['categoria'] ? +params['categoria'] : null;
+      this.searchTerm = params['busca'] || '';
+      this.loadProducts();
+    });
+  }
+
+  loadCategories(): void {
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (err) => {
+        console.error('Error loading categories:', err);
+      }
+    });
+  }
+
+  loadProducts(): void {
+    const params: any = {};
+    
+    if (this.selectedCategory) {
+      params.category_id = this.selectedCategory;
+    }
+    
+    if (this.searchTerm) {
+      params.search = this.searchTerm;
+    }
+
+    console.log('Loading products with params:', params);
+    this.loading = true;
+    this.error = null;
+
+    this.productService.getProducts(params).subscribe({
+      next: (response) => {
+        console.log('Products loaded:', response);
+        this.products = response.data || [];
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading products:', err);
+        this.error = 'Erro ao carregar produtos. Por favor, tente novamente.';
+        this.loading = false;
+      }
+    });
+  }
+
+  onCategoryChange(categoryId: number | null): void {
+    console.log('Category changed:', categoryId);
+    this.selectedCategory = categoryId;
+    this.loadProducts();
+  }
+
+  onSearch(term: string): void {
+    console.log('Search term:', term);
+    this.searchTerm = term;
+    this.loadProducts();
+  }
+
+  addToCart(product: Product): void {
+    console.log('Adding product to cart:', product);
+    this.cartService.addItem(product);
+    // Abrir o carrinho ao adicionar um item
+    this.cartService.openCart();
+  }
+
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+  }
+
+  toggleDietFilter(filter: 'vegetariano' | 'nao-vegetariano'): void {
+    this.dietFilter = this.dietFilter === filter ? null : filter;
+    this.loadProducts();
+  }
+}

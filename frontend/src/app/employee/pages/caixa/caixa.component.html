@@ -1,0 +1,199 @@
+<div class="caixa-container">
+  <h1>PDV - Ponto de Venda</h1>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading && cashStatus?.is_open" class="caixa-content">
+    <div class="caixa-grid">
+      <!-- Coluna da Esquerda: Busca e Carrinho -->
+      <div class="left-column">
+        <!-- Busca de Produtos -->
+        <mat-card class="search-card">
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Buscar Produto</mat-label>
+              <input matInput
+                     [(ngModel)]="searchTerm"
+                     (input)="onSearch($event)"
+                     placeholder="Digite o nome, SKU ou código de barras"
+                     [matAutocomplete]="auto">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectProduct($event.option.value)">
+              <mat-option *ngFor="let product of searchResults" [value]="product">
+                <div class="product-option">
+                  <span class="name">{{product.name}}</span>
+                  <span class="price">{{formatCurrency(product.price)}}</span>
+                  <span class="stock">Estoque: {{product.current_stock}}</span>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+
+            <!-- Produto Selecionado -->
+            <div *ngIf="selectedProduct" class="selected-product">
+              <div class="product-info">
+                <span class="name">{{selectedProduct.name}}</span>
+                <span class="price">{{formatCurrency(selectedProduct.price)}}</span>
+              </div>
+              <div class="quantity-control">
+                <button mat-icon-button 
+                        (click)="quantity = quantity > 1 ? quantity - 1 : 1"
+                        [disabled]="quantity <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="quantity">{{quantity}}</span>
+                <button mat-icon-button 
+                        (click)="quantity = quantity + 1"
+                        [disabled]="quantity >= selectedProduct.current_stock">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="addToCart()"
+                      class="add-button">
+                <mat-icon>add_shopping_cart</mat-icon>
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Carrinho -->
+        <mat-card class="cart-card">
+          <mat-card-header>
+            <mat-card-title>
+              Carrinho
+              <span class="item-count" *ngIf="cartItems.length">
+                ({{cartItems.length}} {{cartItems.length === 1 ? 'item' : 'itens'}})
+              </span>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="cart-items" *ngIf="cartItems.length > 0">
+              <div *ngFor="let item of cartItems; let i = index" class="cart-item">
+                <div class="item-info">
+                  <span class="name">{{item.product.name}}</span>
+                  <span class="price">{{formatCurrency(item.product.price)}}</span>
+                </div>
+                <div class="item-controls">
+                  <div class="quantity-control">
+                    <button mat-icon-button 
+                            (click)="updateQuantity(i, -1)"
+                            [disabled]="item.quantity <= 1">
+                      <mat-icon>remove</mat-icon>
+                    </button>
+                    <span class="quantity">{{item.quantity}}</span>
+                    <button mat-icon-button 
+                            (click)="updateQuantity(i, 1)"
+                            [disabled]="item.quantity >= item.product.current_stock">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>
+                  <span class="subtotal">{{formatCurrency(item.subtotal)}}</span>
+                  <button mat-icon-button color="warn" (click)="removeFromCart(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="cartItems.length === 0" class="empty-cart">
+              <mat-icon>shopping_cart</mat-icon>
+              <p>Carrinho vazio</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Coluna da Direita: Finalização -->
+      <div class="right-column">
+        <mat-card class="checkout-card">
+          <mat-card-header>
+            <mat-card-title>Finalizar Venda</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <!-- Informações do Cliente -->
+            <div class="customer-info">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nome do Cliente (opcional)</mat-label>
+                <input matInput [(ngModel)]="customerName">
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Telefone (opcional)</mat-label>
+                <input matInput [(ngModel)]="customerPhone">
+                <mat-icon matSuffix>phone</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <!-- Total -->
+            <div class="total-section">
+              <div class="total-label">Total da Venda</div>
+              <div class="total-value">{{formatCurrency(total)}}</div>
+            </div>
+
+            <!-- Formas de Pagamento -->
+            <div class="payment-methods">
+              <button mat-raised-button 
+                      color="primary"
+                      class="payment-button"
+                      [disabled]="!cartItems.length"
+                      (click)="finalizeSale('dinheiro')">
+                <mat-icon>payments</mat-icon>
+                Dinheiro
+              </button>
+              <button mat-raised-button 
+                      color="primary"
+                      class="payment-button"
+                      [disabled]="!cartItems.length"
+                      (click)="finalizeSale('cartão de débito')">
+                <mat-icon>credit_card</mat-icon>
+                Débito
+              </button>
+              <button mat-raised-button 
+                      color="primary"
+                      class="payment-button"
+                      [disabled]="!cartItems.length"
+                      (click)="finalizeSale('cartão de crédito')">
+                <mat-icon>credit_card</mat-icon>
+                Crédito
+              </button>
+              <button mat-raised-button 
+                      color="primary"
+                      class="payment-button"
+                      [disabled]="!cartItems.length"
+                      (click)="finalizeSale('pix')">
+                <mat-icon>qr_code</mat-icon>
+                PIX
+              </button>
+            </div>
+
+            <!-- Botão Limpar -->
+            <button mat-stroked-button 
+                    color="warn"
+                    class="clear-button"
+                    [disabled]="!cartItems.length"
+                    (click)="clearCart()">
+              <mat-icon>clear_all</mat-icon>
+              Limpar Venda
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Caixa Fechado -->
+  <div *ngIf="!loading && !cashStatus?.is_open" class="closed-cash">
+    <mat-icon>lock</mat-icon>
+    <h2>Caixa Fechado</h2>
+    <p>Abra o caixa para iniciar as vendas</p>
+  </div>
+</div>

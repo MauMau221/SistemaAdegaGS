@@ -1,0 +1,160 @@
+<div class="checkout-page">
+  <div class="container">
+    <h1>Finalizar Pedido</h1>
+
+    <mat-stepper orientation="vertical">
+      <!-- Resumo do Carrinho -->
+      <mat-step label="Resumo do Pedido">
+        <div class="cart-summary">
+          <div class="cart-items">
+            <div *ngFor="let item of cartItems$ | async" class="cart-item">
+              <div class="item-image">
+                <img [src]="'assets/images/no-image.jpg'" [alt]="item.product.name">
+              </div>
+              <div class="item-details">
+                <h3 class="item-name">{{ item.product.name }}</h3>
+                <p class="item-price">R$ {{ item.price | number:'1.2-2' }}</p>
+                <p class="item-quantity">Quantidade: {{ item.quantity }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="order-summary">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>R$ {{ cartTotal$ | async | number:'1.2-2' }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Taxa de entrega</span>
+              <span>Grátis</span>
+            </div>
+            <div class="summary-total">
+              <span>Total</span>
+              <span>R$ {{ cartTotal$ | async | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperNext>Continuar</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- Endereço de Entrega -->
+      <mat-step label="Endereço de Entrega" [stepControl]="deliveryForm">
+        <form [formGroup]="deliveryForm">
+          <div class="form-grid">
+            <mat-form-field>
+              <mat-label>CEP</mat-label>
+              <input matInput formControlName="zipcode" placeholder="00000-000" (input)="formatZipcode($event)">
+              <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['required']">CEP é obrigatório</mat-error>
+              <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['pattern']">CEP inválido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Endereço</mat-label>
+              <input matInput formControlName="address" placeholder="Rua, Avenida, etc">
+              <mat-error *ngIf="deliveryForm.get('address')?.errors?.['required']">Endereço é obrigatório</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Número</mat-label>
+              <input matInput formControlName="number" placeholder="123">
+              <mat-error *ngIf="deliveryForm.get('number')?.errors?.['required']">Número é obrigatório</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Complemento</mat-label>
+              <input matInput formControlName="complement" placeholder="Apto, Bloco, etc">
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Bairro</mat-label>
+              <input matInput formControlName="neighborhood" placeholder="Seu bairro">
+              <mat-error *ngIf="deliveryForm.get('neighborhood')?.errors?.['required']">Bairro é obrigatório</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Cidade</mat-label>
+              <input matInput formControlName="city" placeholder="Sua cidade">
+              <mat-error *ngIf="deliveryForm.get('city')?.errors?.['required']">Cidade é obrigatória</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Estado</mat-label>
+              <input matInput formControlName="state" placeholder="UF">
+              <mat-error *ngIf="deliveryForm.get('state')?.errors?.['required']">Estado é obrigatório</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Telefone</mat-label>
+              <input matInput formControlName="phone" placeholder="(00) 00000-0000" (input)="formatPhone($event)">
+              <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['required']">Telefone é obrigatório</mat-error>
+              <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['pattern']">Telefone inválido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+              <mat-label>Instruções para entrega</mat-label>
+              <textarea matInput formControlName="instructions" placeholder="Instruções especiais para entrega"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Voltar</button>
+            <button mat-button matStepperNext [disabled]="deliveryForm.invalid">Continuar</button>
+          </div>
+        </form>
+      </mat-step>
+
+      <!-- Forma de Pagamento -->
+      <mat-step label="Forma de Pagamento" [stepControl]="paymentForm">
+        <form [formGroup]="paymentForm">
+          <div class="payment-methods">
+            <mat-radio-group formControlName="method">
+              <mat-radio-button value="pix">
+                <div class="payment-option">
+                  <img src="assets/images/pix-logo.png" alt="PIX">
+                  <span>PIX</span>
+                </div>
+              </mat-radio-button>
+
+              <mat-radio-button value="cash">
+                <div class="payment-option">
+                  <img src="assets/images/cash-icon.png" alt="Dinheiro">
+                  <span>Dinheiro</span>
+                </div>
+              </mat-radio-button>
+
+              <mat-radio-button value="card">
+                <div class="payment-option">
+                  <img src="assets/images/card-icon.png" alt="Cartão">
+                  <span>Cartão na Entrega</span>
+                </div>
+              </mat-radio-button>
+            </mat-radio-group>
+
+            <mat-form-field *ngIf="paymentForm.get('method')?.value === 'cash'">
+              <mat-label>Troco para</mat-label>
+              <input matInput formControlName="change" type="number" placeholder="0.00">
+            </mat-form-field>
+          </div>
+
+          <!-- Mensagem de Erro -->
+          <div *ngIf="error" class="alert alert-error">
+            <mat-icon>error</mat-icon>
+            <span>{{ error }}</span>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious [disabled]="loading">Voltar</button>
+            <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="paymentForm.invalid || loading">
+              <mat-spinner *ngIf="loading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+              <span *ngIf="!loading">Finalizar Pedido</span>
+              <span *ngIf="loading">Processando...</span>
+            </button>
+          </div>
+        </form>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

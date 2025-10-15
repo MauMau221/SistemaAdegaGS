@@ -1,0 +1,378 @@
+<div class="reports-container">
+  <!-- Header -->
+  <div class="reports-header">
+    <h1>Relatórios</h1>
+    <div class="header-actions">
+      <button mat-raised-button [matMenuTriggerFor]="exportMenu">
+        <mat-icon>file_download</mat-icon>
+        Exportar
+      </button>
+      <mat-menu #exportMenu="matMenu">
+        <button mat-menu-item [matMenuTriggerFor]="pdfMenu">
+          <mat-icon>picture_as_pdf</mat-icon>
+          PDF
+        </button>
+        <button mat-menu-item [matMenuTriggerFor]="xlsxMenu">
+          <mat-icon>table_chart</mat-icon>
+          Excel
+        </button>
+        <button mat-menu-item [matMenuTriggerFor]="csvMenu">
+          <mat-icon>description</mat-icon>
+          CSV
+        </button>
+      </mat-menu>
+
+      <!-- PDF Submenu -->
+      <mat-menu #pdfMenu="matMenu">
+        <button mat-menu-item (click)="exportReport('sales', 'pdf')">
+          Relatório de Vendas
+        </button>
+        <button mat-menu-item (click)="exportReport('stock', 'pdf')">
+          Relatório de Estoque
+        </button>
+        <button mat-menu-item (click)="exportReport('customers', 'pdf')">
+          Relatório de Clientes
+        </button>
+        <button mat-menu-item (click)="exportReport('employees', 'pdf')">
+          Relatório de Funcionários
+        </button>
+      </mat-menu>
+
+      <!-- Excel Submenu -->
+      <mat-menu #xlsxMenu="matMenu">
+        <button mat-menu-item (click)="exportReport('sales', 'xlsx')">
+          Relatório de Vendas
+        </button>
+        <button mat-menu-item (click)="exportReport('stock', 'xlsx')">
+          Relatório de Estoque
+        </button>
+        <button mat-menu-item (click)="exportReport('customers', 'xlsx')">
+          Relatório de Clientes
+        </button>
+        <button mat-menu-item (click)="exportReport('employees', 'xlsx')">
+          Relatório de Funcionários
+        </button>
+      </mat-menu>
+
+      <!-- CSV Submenu -->
+      <mat-menu #csvMenu="matMenu">
+        <button mat-menu-item (click)="exportReport('sales', 'csv')">
+          Relatório de Vendas
+        </button>
+        <button mat-menu-item (click)="exportReport('stock', 'csv')">
+          Relatório de Estoque
+        </button>
+        <button mat-menu-item (click)="exportReport('customers', 'csv')">
+          Relatório de Clientes
+        </button>
+        <button mat-menu-item (click)="exportReport('employees', 'csv')">
+          Relatório de Funcionários
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <!-- Período -->
+        <mat-form-field appearance="outline">
+          <mat-label>Período</mat-label>
+          <mat-select [(ngModel)]="filters.period" (selectionChange)="loadReports()">
+            <mat-option value="daily">Diário</mat-option>
+            <mat-option value="weekly">Semanal</mat-option>
+            <mat-option value="monthly">Mensal</mat-option>
+            <mat-option value="yearly">Anual</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Intervalo de Datas -->
+        <mat-form-field appearance="outline">
+          <mat-label>Data Inicial</mat-label>
+          <input matInput [matDatepicker]="startPicker" 
+                 [(ngModel)]="filters.start_date"
+                 (dateChange)="loadReports()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data Final</mat-label>
+          <input matInput [matDatepicker]="endPicker"
+                 [(ngModel)]="filters.end_date"
+                 (dateChange)="loadReports()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Outros Filtros -->
+        <mat-form-field appearance="outline">
+          <mat-label>Categoria</mat-label>
+          <mat-select [(ngModel)]="filters.category_id" (selectionChange)="loadReports()">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option *ngFor="let category of categories" [value]="category.id">
+              {{category.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Forma de Pagamento</mat-label>
+          <mat-select [(ngModel)]="filters.payment_method" (selectionChange)="loadReports()">
+            <mat-option [value]="null">Todas</mat-option>
+            <mat-option value="credit_card">Cartão de Crédito</mat-option>
+            <mat-option value="debit_card">Cartão de Débito</mat-option>
+            <mat-option value="cash">Dinheiro</mat-option>
+            <mat-option value="pix">PIX</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Funcionário</mat-label>
+          <mat-select [(ngModel)]="filters.employee_id" (selectionChange)="loadReports()">
+            <mat-option [value]="null">Todos</mat-option>
+            <mat-option *ngFor="let employee of employees" [value]="employee.id">
+              {{employee.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-slide-toggle [(ngModel)]="filters.include_inactive" 
+                         (change)="loadReports()">
+          Incluir Inativos
+        </mat-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Carregando relatórios...</p>
+  </div>
+
+  <!-- Reports Grid -->
+  <div *ngIf="!loading" class="reports-grid">
+    <!-- Vendas -->
+    <mat-card class="report-card sales-report">
+      <mat-card-header>
+        <mat-card-title>Vendas</mat-card-title>
+        <button mat-icon-button [matMenuTriggerFor]="salesMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #salesMenu="matMenu">
+          <button mat-menu-item (click)="exportReport('sales', 'pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
+          </button>
+          <button mat-menu-item (click)="exportReport('sales', 'xlsx')">
+            <mat-icon>table_chart</mat-icon>
+            Exportar Excel
+          </button>
+        </mat-menu>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-label">Total de Vendas</span>
+            <span class="metric-value">{{salesReport?.total_sales}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Receita Total</span>
+            <span class="metric-value">{{formatCurrency(salesReport?.total_revenue)}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Ticket Médio</span>
+            <span class="metric-value">{{formatCurrency(salesReport?.average_ticket)}}</span>
+          </div>
+        </div>
+
+        <!-- Gráfico de Vendas -->
+        <div class="chart-container">
+          <canvas #salesChart></canvas>
+        </div>
+
+        <!-- Top Produtos -->
+        <div class="top-products">
+          <h3>Produtos Mais Vendidos</h3>
+          <mat-list>
+            <mat-list-item *ngFor="let product of salesReport?.top_selling_products">
+              <span matListItemTitle>{{product.product_name}}</span>
+              <span matListItemLine>
+                {{product.quantity_sold}} unidades • {{formatCurrency(product.revenue)}}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Estoque -->
+    <mat-card class="report-card stock-report">
+      <mat-card-header>
+        <mat-card-title>Estoque</mat-card-title>
+        <button mat-icon-button [matMenuTriggerFor]="stockMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #stockMenu="matMenu">
+          <button mat-menu-item (click)="exportReport('stock', 'pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
+          </button>
+          <button mat-menu-item (click)="exportReport('stock', 'xlsx')">
+            <mat-icon>table_chart</mat-icon>
+            Exportar Excel
+          </button>
+        </mat-menu>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-label">Total de Produtos</span>
+            <span class="metric-value">{{stockReport?.total_products}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Valor em Estoque</span>
+            <span class="metric-value">{{formatCurrency(stockReport?.total_stock_value)}}</span>
+          </div>
+        </div>
+
+        <!-- Produtos com Estoque Baixo -->
+        <div class="low-stock">
+          <h3>Estoque Baixo</h3>
+          <mat-list>
+            <mat-list-item *ngFor="let product of stockReport?.low_stock_products">
+              <span matListItemTitle>{{product.product_name}}</span>
+              <span matListItemLine>
+                Atual: {{product.current_stock}} • Mínimo: {{product.min_stock}}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+
+        <!-- Gráfico de Movimentações -->
+        <div class="chart-container">
+          <canvas #stockChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Clientes -->
+    <mat-card class="report-card customers-report">
+      <mat-card-header>
+        <mat-card-title>Clientes</mat-card-title>
+        <button mat-icon-button [matMenuTriggerFor]="customersMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #customersMenu="matMenu">
+          <button mat-menu-item (click)="exportReport('customers', 'pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
+          </button>
+          <button mat-menu-item (click)="exportReport('customers', 'xlsx')">
+            <mat-icon>table_chart</mat-icon>
+            Exportar Excel
+          </button>
+        </mat-menu>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-label">Total de Clientes</span>
+            <span class="metric-value">{{customerReport?.total_customers}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Clientes Ativos</span>
+            <span class="metric-value">{{customerReport?.active_customers}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Taxa de Retenção</span>
+            <span class="metric-value">{{formatPercent(customerReport?.retention_rate)}}</span>
+          </div>
+        </div>
+
+        <!-- Gráfico de Novos Clientes -->
+        <div class="chart-container">
+          <canvas #customersChart></canvas>
+        </div>
+
+        <!-- Segmentos -->
+        <div class="customer-segments">
+          <h3>Segmentos</h3>
+          <mat-list>
+            <mat-list-item *ngFor="let segment of customerReport?.customer_segments">
+              <span matListItemTitle>{{segment.segment}}</span>
+              <span matListItemLine>
+                {{segment.count}} clientes • {{formatCurrency(segment.total_revenue)}}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Funcionários -->
+    <mat-card class="report-card employees-report">
+      <mat-card-header>
+        <mat-card-title>Funcionários</mat-card-title>
+        <button mat-icon-button [matMenuTriggerFor]="employeesMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #employeesMenu="matMenu">
+          <button mat-menu-item (click)="exportReport('employees', 'pdf')">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
+          </button>
+          <button mat-menu-item (click)="exportReport('employees', 'xlsx')">
+            <mat-icon>table_chart</mat-icon>
+            Exportar Excel
+          </button>
+        </mat-menu>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="metrics-grid">
+          <div class="metric">
+            <span class="metric-label">Total de Funcionários</span>
+            <span class="metric-value">{{employeeReport?.total_employees}}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Funcionários Ativos</span>
+            <span class="metric-value">{{employeeReport?.active_employees}}</span>
+          </div>
+        </div>
+
+        <!-- Vendas por Funcionário -->
+        <div class="employee-sales">
+          <h3>Vendas por Funcionário</h3>
+          <mat-list>
+            <mat-list-item *ngFor="let employee of employeeReport?.sales_by_employee">
+              <span matListItemTitle>{{employee.employee_name}}</span>
+              <span matListItemLine>
+                {{employee.orders_count}} pedidos • {{formatCurrency(employee.total_sales)}}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+
+        <!-- Operações de Caixa -->
+        <div class="cash-operations">
+          <h3>Operações de Caixa</h3>
+          <mat-list>
+            <mat-list-item *ngFor="let operation of employeeReport?.cash_operations">
+              <span matListItemTitle>{{operation.employee_name}}</span>
+              <span matListItemLine>
+                {{operation.transactions}} transações • 
+                Precisão: {{formatPercent(operation.balance_accuracy)}}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

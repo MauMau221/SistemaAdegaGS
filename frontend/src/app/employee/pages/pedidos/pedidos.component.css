@@ -1,0 +1,126 @@
+.pedidos-container {
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loading-container p {
+  margin-top: 20px;
+  color: #666;
+}
+
+.pedidos-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.toggle-content {
+  position: relative;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toggle-content span {
+  margin-right: 16px; /* Espaço para o badge */
+}
+
+.orders-card {
+  overflow: hidden;
+}
+
+.orders-table {
+  width: 100%;
+}
+
+.customer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-info .name {
+  font-weight: 500;
+}
+
+.customer-info .email,
+.customer-info .phone {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.items-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.items-count {
+  font-weight: 500;
+}
+
+.items-summary {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+/* Estilos da tabela */
+.mat-mdc-row:hover {
+  background-color: #f5f5f5;
+}
+
+.mat-mdc-header-cell {
+  font-weight: 600;
+  color: #333;
+}
+
+.mat-mdc-cell {
+  padding: 16px 8px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .pedidos-container {
+    padding: 10px;
+  }
+
+  .mat-mdc-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
