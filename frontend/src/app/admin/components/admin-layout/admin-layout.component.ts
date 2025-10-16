@@ -26,44 +26,43 @@ import { AuthService } from '../../../core/services/auth.service';
     <mat-sidenav-container class="admin-container">
       <mat-sidenav mode="side" opened class="admin-sidenav">
         <div class="sidenav-header">
-          <h2>Painel Admin</h2>
+          <div class="brand">
+            <mat-icon>local_bar</mat-icon>
+            <span>ADEGA GS</span>
+          </div>
+          <small>Painel Admin</small>
         </div>
-        
-        <mat-nav-list>
-          <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
-            <mat-icon matListItemIcon>dashboard</mat-icon>
-            <span matListItemTitle>Dashboard</span>
-          </a>
 
-          <a mat-list-item routerLink="/admin/produtos" routerLinkActive="active">
-            <mat-icon matListItemIcon>inventory_2</mat-icon>
-            <span matListItemTitle>Produtos</span>
+        <nav class="nav">
+          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+            <mat-icon>dashboard</mat-icon>
+            <span>Dashboard</span>
           </a>
-
-          <a mat-list-item routerLink="/admin/categorias" routerLinkActive="active">
-            <mat-icon matListItemIcon>category</mat-icon>
-            <span matListItemTitle>Categorias</span>
+          <a routerLink="/admin/produtos" routerLinkActive="active" class="nav-item">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Produtos</span>
           </a>
-
-          <a mat-list-item routerLink="/admin/usuarios" routerLinkActive="active">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Usuários</span>
+          <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
+            <mat-icon>category</mat-icon>
+            <span>Categorias</span>
           </a>
-
-          <a mat-list-item routerLink="/admin/relatorios" routerLinkActive="active">
-            <mat-icon matListItemIcon>assessment</mat-icon>
-            <span matListItemTitle>Relatórios</span>
+          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+            <mat-icon>people</mat-icon>
+            <span>Usuários</span>
           </a>
-
-          <a mat-list-item routerLink="/admin/configuracoes" routerLinkActive="active">
-            <mat-icon matListItemIcon>settings</mat-icon>
-            <span matListItemTitle>Configurações</span>
+          <a routerLink="/admin/relatorios" routerLinkActive="active" class="nav-item">
+            <mat-icon>assessment</mat-icon>
+            <span>Relatórios</span>
           </a>
-        </mat-nav-list>
+          <a routerLink="/admin/configuracoes" routerLinkActive="active" class="nav-item">
+            <mat-icon>settings</mat-icon>
+            <span>Configurações</span>
+          </a>
+        </nav>
 
         <div class="sidenav-footer">
-          <button mat-button (click)="logout()">
-            <mat-icon>exit_to_app</mat-icon>
+          <button mat-stroked-button color="warn" (click)="logout()" class="logout-btn">
+            <mat-icon>logout</mat-icon>
             Sair
           </button>
         </div>
@@ -89,36 +88,62 @@ import { AuthService } from '../../../core/services/auth.service';
     }
 
     .admin-sidenav {
-      width: 250px;
-      background-color: #fff;
-      border-right: 1px solid #ddd;
+      width: 280px;
+      background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+      color: #e5e7eb;
     }
 
     .sidenav-header {
-      padding: 16px;
-      text-align: center;
-      background-color: #f5f5f5;
-      border-bottom: 1px solid #ddd;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
-    .sidenav-header h2 {
-      margin: 0;
-      font-size: 1.2em;
-      color: #333;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .5px;
     }
+
+    .brand mat-icon { color: #60a5fa; }
+    .brand span { color: #fff; }
+
+    .nav { display: flex; flex-direction: column; padding: 8px; gap: 4px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 44px;
+      padding: 0 12px;
+      color: #cbd5e1;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+
+    .nav-item mat-icon { color: #9ca3af; }
+
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .nav-item:hover mat-icon { color: #fff; }
+
+    .active { background: #3498db; color: #ffffff; }
+    .active span { color: #ffffff; }
+    .active mat-icon { color: #ffffff; }
 
     .sidenav-footer {
       position: absolute;
       bottom: 0;
       width: 100%;
       padding: 16px;
-      border-top: 1px solid #ddd;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
 
-    .sidenav-footer button {
-      width: 100%;
-      justify-content: flex-start;
-    }
+    .logout-btn { width: 100%; justify-content: center; }
 
     mat-toolbar {
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -139,10 +164,7 @@ import { AuthService } from '../../../core/services/auth.service';
       overflow-y: auto;
     }
 
-    .active {
-      background-color: #f5f5f5;
-      border-left: 4px solid #3f51b5;
-    }
+    /* Removido estilo antigo de ativo que gerava fundo branco */
 
     mat-nav-list a {
       height: 48px;
@@ -151,6 +173,10 @@ import { AuthService } from '../../../core/services/auth.service';
     mat-nav-list mat-icon {
       margin-right: 16px;
     }
+
+    /* Garantir maior especificidade para o estado ativo do menu */
+    .nav .nav-item.active { background: #3498db; color: #ffffff; }
+    .nav .nav-item.active mat-icon, .nav .nav-item.active span { color: #ffffff; }
   `]
 })
 export class AdminLayoutComponent {

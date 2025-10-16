@@ -1,17 +1,21 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" fixedInViewport
-      [mode]="'side'"
-      [opened]="true">
-    <mat-toolbar>
-      ADEGA GS
-    </mat-toolbar>
-    <mat-nav-list>
-      <a mat-list-item *ngFor="let item of menuItems" [routerLink]="item.path" routerLinkActive="active">
-        <mat-icon matListItemIcon>{{item.icon}}</mat-icon>
-        <span matListItemTitle>{{item.label}}</span>
+  <mat-sidenav #drawer class="sidenav" fixedInViewport [mode]="'side'" [opened]="true">
+    <div class="sidenav-header">
+      <div class="brand">
+        <mat-icon>storefront</mat-icon>
+        <span>ADEGA GS</span>
+      </div>
+      <small>Painel do Funcionário</small>
+    </div>
+
+    <nav class="nav">
+      <a *ngFor="let item of menuItems" [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+        <mat-icon>{{item.icon}}</mat-icon>
+        <span>{{item.label}}</span>
       </a>
-    </mat-nav-list>
+    </nav>
   </mat-sidenav>
+
   <mat-sidenav-content>
     <mat-toolbar color="primary" class="main-toolbar">
       <span>Painel do Funcionário</span>

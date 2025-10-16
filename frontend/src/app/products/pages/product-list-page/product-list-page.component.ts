@@ -34,6 +34,23 @@ export class ProductListPageComponent implements OnInit {
     private route: ActivatedRoute
   ) {}
 
+  getCategoryImageUrl(category: Category): string {
+    if (!category.image_url) {
+      return 'assets/images/no-image.jpg';
+    }
+    
+    if (category.image_url.startsWith('http://') || category.image_url.startsWith('https://')) {
+      return category.image_url;
+    }
+    
+    // Resolve relative paths to absolute URLs with cache-busting
+    const base = environment.apiUrl.replace(/\/api$/, '');
+    const path = category.image_url.startsWith('/') ? category.image_url : `/${category.image_url}`;
+    const cacheBuster = category.updated_at ? `?v=${category.updated_at}` : '';
+    
+    return `${base}${path}${cacheBuster}`;
+  }
+
   ngOnInit(): void {
     console.log('ProductListPageComponent initialized');
     this.loadCategories();

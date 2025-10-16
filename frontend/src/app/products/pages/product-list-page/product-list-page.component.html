@@ -9,7 +9,7 @@
            [class.active]="selectedCategory === category.id"
            class="category-item">
           <div class="category-icon">
-            <img [src]="'assets/images/no-image.jpg'" [alt]="category.name">
+            <img [src]="getCategoryImageUrl(category)" [alt]="category.name">
           </div>
           <span class="category-name">{{ category.name }}</span>
         </a>

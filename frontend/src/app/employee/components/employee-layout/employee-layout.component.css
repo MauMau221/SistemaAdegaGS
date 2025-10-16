@@ -6,19 +6,28 @@
 
 .sidenav {
   width: 280px;
-  background: #fff;
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+  color: #e5e7eb;
+}
+.sidenav-header {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.sidenav .mat-toolbar {
-  background: #1976d2;
-  color: white;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  font-size: 20px;
-}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .5px; }
+.brand mat-icon { color: #60a5fa; }
+.brand span { color: #fff; }
+
+.nav { display: flex; flex-direction: column; padding: 8px; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; color: #cbd5e1; border-radius: 8px; text-decoration: none; transition: background .2s, color .2s; }
+.nav-item mat-icon { color: #9ca3af; }
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-item:hover mat-icon { color: #fff; }
+.nav-item.active { background: rgba(59,130,246,0.2); color: #fff; }
+.nav-item.active mat-icon { color: #60a5fa; }
 
 .spacer {
   flex: 1 1 auto;

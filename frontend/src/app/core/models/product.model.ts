@@ -27,4 +27,5 @@ export interface Category {
     is_active: boolean;
     image_url?: string;
     products_count?: number;
+    updated_at?: string;
 }
