@@ -90,12 +90,14 @@ class DatabaseSeeder extends Seeder
             ]
         ];
 
-        foreach ($categories as $category) {
-            Category::create([
+        $createdCategories = [];
+        foreach ($categories as $index => $category) {
+            $createdCategories[] = Category::create([
                 'name' => $category['name'],
                 'slug' => Str::slug($category['name']),
                 'description' => $category['description'],
-                'is_active' => $category['is_active']
+                'is_active' => $category['is_active'],
+                'position' => $index + 1 // Definir posição baseada na ordem do array
             ]);
         }
 

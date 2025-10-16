@@ -13,6 +13,7 @@ class CategoryController extends Controller
         $categories = Category::query()
             ->where('is_active', true)
             ->withCount('products')
+            ->orderBy('position')
             ->orderBy('name')
             ->get();
         return response()->json($categories);

@@ -30,9 +30,14 @@ class CategoryController extends Controller
         }
 
         // Ordenação
-        $sortBy = $request->get('sort_by', 'name');
+        $sortBy = $request->get('sort_by', 'position');
         $sortOrder = $request->get('sort_order', 'asc');
         $query->orderBy($sortBy, $sortOrder);
+        
+        // Se ordenar por position, adicionar name como ordenação secundária
+        if ($sortBy === 'position') {
+            $query->orderBy('name', 'asc');
+        }
 
         // Paginação
         $perPage = $request->get('per_page', 10);

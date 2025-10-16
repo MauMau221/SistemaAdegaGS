@@ -96,6 +96,9 @@ export class CategoryService {
       if (value !== undefined && value !== null) {
         if (key === 'image' && value instanceof File) {
           formData.append('image', value, value.name);
+        } else if (key === 'is_active') {
+          // Para boolean fields em FormData, enviar '1' ou '0'
+          formData.append(key, value ? '1' : '0');
         } else {
           formData.append(key, value.toString());
         }

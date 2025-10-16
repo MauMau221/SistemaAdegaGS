@@ -1,14 +1,16 @@
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
   background: #FFFFFF;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 50;
+  z-index: 1000;
   height: 64px;
   display: flex;
   align-items: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .header-content {
@@ -345,7 +347,4 @@
   color: #D32F2F !important;
 }
 
-/* Espaçador para compensar o header fixo */
-.header-spacer {
-  height: 64px;
-}
+/* Espaçador removido - usando position: sticky agora */

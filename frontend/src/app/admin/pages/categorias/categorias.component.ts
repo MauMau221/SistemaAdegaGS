@@ -276,25 +276,34 @@ export class CategoriasComponent implements OnInit, OnDestroy {
   }
 
   onDrop(event: any): void {
-    // Implementar reordenação via drag & drop
     const { previousIndex, currentIndex } = event;
     if (previousIndex === currentIndex) return;
 
+    // Mover o item no array local
+    const movedCategory = this.categories[previousIndex];
+    this.categories.splice(previousIndex, 1);
+    this.categories.splice(currentIndex, 0, movedCategory);
+
+    // Criar array com novas posições baseadas na ordem atual
     const categories = this.categories.map((cat, index) => ({
       id: cat.id,
-      position: index === previousIndex ? currentIndex : index
+      position: index + 1 // Posições começam em 1
     }));
 
     this.categoryService.reorderCategories(categories)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          this.snackBar.open('Categorias reordenadas com sucesso!', 'Fechar', { duration: 2000 });
+          // Atualizar a lista para refletir as mudanças
           this.loadCategories();
           this.loadCategoryTree();
         },
         error: (error) => {
           console.error('Erro ao reordenar categorias:', error);
           this.snackBar.open('Erro ao reordenar categorias', 'Fechar', { duration: 3000 });
+          // Reverter a mudança local em caso de erro
+          this.loadCategories();
         }
       });
   }
