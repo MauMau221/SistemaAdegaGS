@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface CategoryResponse {
@@ -75,7 +75,10 @@ export class CategoryService {
   }
 
   getAllCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.apiUrl}/all`);
+    const params = new HttpParams().set('per_page', '1000');
+    return this.http.get<CategoryResponse>(this.apiUrl, { params }).pipe(
+      map(response => response.data)
+    );
   }
 
   getCategoryTree(): Observable<CategoryTree[]> {
@@ -103,20 +106,40 @@ export class CategoryService {
   }
 
   updateCategory(category: UpdateCategoryDTO): Observable<Category> {
-    const formData = new FormData();
-    
-    Object.entries(category).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (key === 'image' && value instanceof File) {
-          formData.append('image', value, value.name);
-        } else {
-          formData.append(key, value.toString());
-        }
-      }
-    });
+    const { id, image, ...rest } = category;
 
-    formData.append('_method', 'PUT'); // Laravel exige isso para processar como PUT
-    return this.http.post<Category>(`${this.apiUrl}/${category.id}`, formData);
+    // Normalizar tipos
+    const payload: any = { ...rest };
+    if (payload.parent_id === '' || payload.parent_id === null || payload.parent_id === undefined) {
+      delete payload.parent_id;
+    } else {
+      payload.parent_id = Number(payload.parent_id);
+    }
+    if (payload.is_active !== undefined) payload.is_active = !!payload.is_active;
+
+    // Com imagem: usar endpoint dedicado via POST para evitar method spoofing
+    if (image instanceof File) {
+      const formData = new FormData();
+      // Garantir que 'name' seja enviado primeiro
+      if (payload.name !== undefined && payload.name !== null) {
+        formData.append('name', String(payload.name));
+      }
+      Object.entries(payload).forEach(([key, value]) => {
+        if (key === 'name') return; // já enviado
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'boolean') {
+            formData.append(key, value ? '1' : '0');
+          } else {
+            formData.append(key, value.toString());
+          }
+        }
+      });
+      formData.append('image', image, image.name);
+      return this.http.post<Category>(`${this.apiUrl}/${id}/update`, formData);
+    }
+
+    // Sem imagem: JSON via PUT
+    return this.http.put<Category>(`${this.apiUrl}/${id}`, payload);
   }
 
   deleteCategory(id: number): Observable<void> {

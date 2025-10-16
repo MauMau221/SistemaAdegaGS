@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ProductService, Product, CreateProductDTO } from '../../../services/product.service';
 import { CategoryService } from '../../../services/category.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-product-form-dialog',
@@ -43,7 +44,7 @@ import { CategoryService } from '../../../services/category.service';
             <div class="preview" 
                  [class.has-image]="imagePreview"
                  (click)="fileInput.click()">
-              <img *ngIf="imagePreview" [src]="imagePreview" alt="Preview">
+              <img *ngIf="imagePreview" [src]="resolvePreview(imagePreview)" alt="Preview">
               <mat-icon *ngIf="!imagePreview">add_photo_alternate</mat-icon>
               <div class="overlay">
                 <mat-icon>edit</mat-icon>
@@ -425,5 +426,17 @@ export class ProductFormDialogComponent implements OnInit {
         }
       });
     }
+  }
+
+  resolvePreview(previewUrl: string): string {
+    if (!previewUrl) return '';
+    if (previewUrl.startsWith('data:')) return previewUrl;
+    if (previewUrl.startsWith('http://') || previewUrl.startsWith('https://')) return previewUrl;
+    if (previewUrl.startsWith('/storage/') || previewUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = previewUrl.startsWith('/') ? previewUrl : `/${previewUrl}`;
+      return `${base}${path}`;
+    }
+    return previewUrl;
   }
 }

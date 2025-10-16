@@ -10,7 +10,11 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('products')->get();
+        $categories = Category::query()
+            ->where('is_active', true)
+            ->withCount('products')
+            ->orderBy('name')
+            ->get();
         return response()->json($categories);
     }
 

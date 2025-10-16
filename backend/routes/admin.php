@@ -14,6 +14,8 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/categories/{category}', [CategoryController::class, 'show']);
     Route::post('/admin/categories', [CategoryController::class, 'store']);
     Route::put('/admin/categories/{category}', [CategoryController::class, 'update']);
+    // Suporte a atualização via POST (útil para multipart/form-data em alguns clientes)
+    Route::post('/admin/categories/{category}/update', [CategoryController::class, 'update']);
     Route::delete('/admin/categories/{category}', [CategoryController::class, 'destroy']);
     Route::patch('/admin/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus']);
     Route::post('/admin/categories/{category}/image', [CategoryController::class, 'uploadImage']);

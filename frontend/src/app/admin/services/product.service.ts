@@ -98,20 +98,33 @@ export class ProductService {
   }
 
   updateProduct(product: UpdateProductDTO): Observable<Product> {
-    const formData = new FormData();
-    
-    Object.entries(product).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (key === 'image' && value instanceof File) {
-          formData.append('image', value, value.name);
-        } else {
-          formData.append(key, value.toString());
-        }
-      }
-    });
+    const { id, image, ...rest } = product as any;
 
-    formData.append('_method', 'PUT'); // Laravel exige isso para processar como PUT
-    return this.http.post<Product>(`${this.apiUrl}/${product.id}`, formData);
+    // Normalizar
+    const payload: any = { ...rest };
+    if (payload.category_id !== undefined && payload.category_id !== null && payload.category_id !== '') {
+      payload.category_id = Number(payload.category_id);
+    }
+    if (payload.is_active !== undefined) payload.is_active = !!payload.is_active;
+
+    // Com imagem: POST com _method=PUT
+    if (image instanceof File) {
+      const formData = new FormData();
+      if (payload.name !== undefined && payload.name !== null) formData.append('name', String(payload.name));
+      Object.entries(payload).forEach(([key, value]) => {
+        if (key === 'name') return;
+        if (value !== undefined && value !== null) {
+          if (typeof value === 'boolean') formData.append(key, value ? '1' : '0');
+          else formData.append(key, value.toString());
+        }
+      });
+      formData.append('image', image, image.name);
+      formData.append('_method', 'PUT');
+      return this.http.post<Product>(`${this.apiUrl}/${id}`, formData);
+    }
+
+    // Sem imagem: PUT JSON
+    return this.http.put<Product>(`${this.apiUrl}/${id}`, payload);
   }
 
   deleteProduct(id: number): Observable<void> {

@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { CategoryService, Category, CreateCategoryDTO } from '../../../services/category.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-category-form-dialog',
@@ -42,7 +43,7 @@ import { CategoryService, Category, CreateCategoryDTO } from '../../../services/
             <div class="preview" 
                  [class.has-image]="imagePreview"
                  (click)="fileInput.click()">
-              <img *ngIf="imagePreview" [src]="imagePreview" alt="Preview">
+              <img *ngIf="imagePreview" [src]="resolvePreview(imagePreview)" alt="Preview">
               <mat-icon *ngIf="!imagePreview">add_photo_alternate</mat-icon>
               <div class="overlay">
                 <mat-icon>edit</mat-icon>
@@ -285,8 +286,14 @@ export class CategoryFormDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.categoryForm.valid) {
       this.loading = true;
+      const raw = this.categoryForm.value;
       const categoryData: CreateCategoryDTO = {
-        ...this.categoryForm.value
+        name: raw.name,
+        description: raw.description || undefined,
+        parent_id: (raw.parent_id === null || raw.parent_id === undefined || raw.parent_id === '')
+          ? undefined
+          : Number(raw.parent_id),
+        is_active: !!raw.is_active
       };
 
       if (this.imageFile) {
@@ -303,10 +310,34 @@ export class CategoryFormDialogComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erro ao salvar categoria:', error);
-          this.snackBar.open('Erro ao salvar categoria', 'Fechar', { duration: 3000 });
+          const backendMsg = error?.error?.message;
+          const validation = error?.error?.errors;
+          let msg = 'Erro ao salvar categoria';
+          if (backendMsg) msg = backendMsg;
+          if (validation) {
+            const first = Object.values(validation)[0] as string[];
+            if (first && first.length) msg = first[0];
+          }
+          this.snackBar.open(msg, 'Fechar', { duration: 4000 });
           this.loading = false;
         }
       });
     }
+  }
+
+  resolvePreview(previewUrl: string): string {
+    if (!previewUrl) return '';
+    // data URL (arquivo selecionado)
+    if (previewUrl.startsWith('data:')) return previewUrl;
+    // URL absoluta
+    if (previewUrl.startsWith('http://') || previewUrl.startsWith('https://')) return previewUrl;
+    // Caminho do storage gerado pelo backend
+    if (previewUrl.startsWith('/storage/') || previewUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = previewUrl.startsWith('/') ? previewUrl : `/${previewUrl}`;
+      return `${base}${path}`;
+    }
+    // Fallback
+    return previewUrl;
   }
 }

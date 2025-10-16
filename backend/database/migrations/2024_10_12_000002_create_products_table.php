@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('barcode')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('featured')->default(false);
+            $table->string('image_url')->nullable();
             $table->json('images')->nullable();
             $table->timestamps();
         });

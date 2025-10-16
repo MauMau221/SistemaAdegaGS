@@ -22,6 +22,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { CategoryService, Category, CategoryResponse, CategoryTree } from '../../services/category.service';
+import { environment } from '../../../../environments/environment';
 import { CategoryFormDialogComponent } from './dialogs/category-form-dialog.component';
 import { CategoryStatsDialogComponent } from './dialogs/category-stats-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -95,6 +96,20 @@ export class CategoriasComponent implements OnInit, OnDestroy {
       this.currentPage = 0;
       this.loadCategories();
     });
+  }
+
+  getImageUrl(imageUrl?: string): string {
+    if (!imageUrl) return 'assets/images/no-image.jpg';
+    // Se já vier URL absoluta
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    // Se vier caminho do storage
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}`;
+    }
+    // Fallback
+    return imageUrl;
   }
 
   ngOnInit(): void {

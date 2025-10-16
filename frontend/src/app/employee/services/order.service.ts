@@ -121,7 +121,7 @@ export class OrderService {
   }
 
   createOrder(order: CreateOrderRequest): Observable<CreateOrderResponse> {
-    return this.http.post<CreateOrderResponse>(this.apiUrl, order).pipe(
+    return this.http.post<CreateOrderResponse>(`${this.apiUrl}/create`, order).pipe(
       tap(() => {
         // Recarregar a lista de pedidos após criar um novo
         this.fetchOrders().subscribe();

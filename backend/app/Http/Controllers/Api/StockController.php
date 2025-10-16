@@ -17,7 +17,7 @@ class StockController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $filters = $request->only(['search', 'low_stock']);
+            $filters = $request->only(['search', 'low_stock', 'per_page']);
             $products = $this->stockService->getAllStock($filters);
             return response()->json($products);
         } catch (\Exception $e) {

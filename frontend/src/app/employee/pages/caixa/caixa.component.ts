@@ -20,6 +20,7 @@ import { CashService } from '../../services/cash.service';
 import { StockService } from '../../../core/services/stock.service';
 import { OrderService, PaymentMethod, CreateOrderRequest, CreateOrderResponse, Product } from '../../services/order.service';
 import { CashStatus } from '../../models/cash.model';
+import { OpenCashDialogComponent } from './dialogs/open-cash-dialog.component';
 
 interface CartItem {
   product: Product;
@@ -115,6 +116,36 @@ export class CaixaComponent implements OnInit, OnDestroy {
           this.snackBar.open('Erro ao carregar status do caixa', 'Fechar', { duration: 3000 });
           this.loading = false;
         }
+      });
+  }
+
+  openCash(): void {
+    const dialogRef = this.dialog.open(OpenCashDialogComponent, {
+      width: '360px'
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((result?: { initialAmount: number }) => {
+        if (!result || result.initialAmount === undefined) {
+          return;
+        }
+
+        this.loading = true;
+        this.cashService.openCash(result.initialAmount)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: status => {
+              this.cashStatus = status;
+              this.loading = false;
+              this.snackBar.open('Caixa aberto com sucesso', 'Fechar', { duration: 3000 });
+            },
+            error: error => {
+              console.error('Erro ao abrir caixa:', error);
+              this.loading = false;
+              this.snackBar.open('Erro ao abrir caixa', 'Fechar', { duration: 3000 });
+            }
+          });
       });
   }
 

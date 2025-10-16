@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { Product, Category } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -99,5 +100,35 @@ export class HomeComponent implements OnInit {
 
   trackByCategoryId(index: number, category: Category): number {
     return category.id;
+  }
+
+  getCategoryImage(category: Category): string {
+    const imageUrl = (category as any).image_url as string | undefined;
+    if (!imageUrl) return 'assets/images/no-image.jpg';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}`;
+    }
+    return imageUrl;
+  }
+
+  getProductImage(product: Product): string {
+    const imageUrl = (product as any).image_url as string | undefined;
+    if (imageUrl) {
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return `${imageUrl}?v=${encodeURIComponent((product as any).updated_at || '')}`;
+      }
+      if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+        const base = environment.apiUrl.replace(/\/api$/, '');
+        const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        return `${base}${path}?v=${encodeURIComponent((product as any).updated_at || '')}`;
+      }
+      return `${imageUrl}?v=${encodeURIComponent((product as any).updated_at || '')}`;
+    }
+    const first = (product as any).images?.[0];
+    if (first) return first;
+    return 'assets/images/no-image.jpg';
   }
 }

@@ -5,6 +5,7 @@ import { ProductSearchComponent } from '../../components/product-search/product-
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { Product, Category } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-product-list-page',
@@ -110,5 +111,23 @@ export class ProductListPageComponent implements OnInit {
   toggleDietFilter(filter: 'vegetariano' | 'nao-vegetariano'): void {
     this.dietFilter = this.dietFilter === filter ? null : filter;
     this.loadProducts();
+  }
+
+  getImageUrl(product: Product): string {
+    const imageUrl = (product as any).image_url as string | undefined;
+    if (imageUrl) {
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return `${imageUrl}?v=${encodeURIComponent(product.updated_at as any)}`;
+      }
+      if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+        const base = environment.apiUrl.replace(/\/api$/, '');
+        const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+        return `${base}${path}?v=${encodeURIComponent(product.updated_at as any)}`;
+      }
+      return `${imageUrl}?v=${encodeURIComponent(product.updated_at as any)}`;
+    }
+    const first = (product as any).images?.[0];
+    if (first) return first;
+    return 'assets/images/no-image.jpg';
   }
 }

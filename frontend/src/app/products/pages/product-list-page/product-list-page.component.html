@@ -62,7 +62,7 @@
          [class]="'products-container ' + (viewMode === 'grid' ? 'grid-view' : 'list-view')">
       <div *ngFor="let product of products" class="product-card">
         <div class="product-image">
-          <img [src]="'assets/images/no-image.jpg'" [alt]="product.name">
+          <img [src]="getImageUrl(product)" [alt]="product.name">
         </div>
         <div class="product-info">
           <h3 class="product-name">{{ product.name }}</h3>

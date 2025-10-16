@@ -15,6 +15,8 @@ export interface Product {
     images?: string[];
     category?: Category;
     low_stock?: boolean;
+    image_url?: string;
+    updated_at?: string;
 }
 
 export interface Category {
@@ -23,5 +25,6 @@ export interface Category {
     slug: string;
     description?: string;
     is_active: boolean;
+    image_url?: string;
     products_count?: number;
 }

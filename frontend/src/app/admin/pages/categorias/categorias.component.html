@@ -75,7 +75,7 @@
           <th mat-header-cell *matHeaderCellDef>Imagem</th>
           <td mat-cell *matCellDef="let category">
             <div class="category-image">
-              <img [src]="category.image_url || 'assets/images/no-image.png'"
+              <img [src]="getImageUrl(category.image_url)"
                    [alt]="category.name"
                    width="40"
                    height="40">

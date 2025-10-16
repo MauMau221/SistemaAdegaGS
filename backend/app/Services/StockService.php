@@ -18,21 +18,27 @@ class StockService
 
     public function getAllStock(array $filters = []): LengthAwarePaginator
     {
+        $perPage = isset($filters['per_page']) && (int)$filters['per_page'] > 0 ? (int)$filters['per_page'] : 15;
+
         $query = Product::query()
             ->with(['category'])
-            ->when(isset($filters['low_stock']), function ($query) {
-                $query->whereRaw('current_stock <= min_stock');
+            // Filtro de baixo estoque apenas quando valor truthy
+            ->when(!empty($filters['low_stock']), function ($query) {
+                $query->whereRaw('COALESCE(current_stock, stock_quantity) <= COALESCE(min_stock, min_stock_quantity)');
             })
-            ->when(isset($filters['search']), function ($query) use ($filters) {
+            // Busca por nome, SKU ou código de barras
+            ->when(isset($filters['search']) && $filters['search'] !== '', function ($query) use ($filters) {
                 $search = $filters['search'];
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('sku', 'like', "%{$search}%")
                         ->orWhere('barcode', 'like', "%{$search}%");
                 });
-            });
+            })
+            // Ordenar por estoque ascendente (considerando current_stock quando existir)
+            ->orderByRaw('COALESCE(current_stock, stock_quantity) ASC');
 
-        return $query->paginate(15);
+        return $query->paginate($perPage);
     }
 
     public function updateStock(

@@ -19,6 +19,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 import { ProductService, Product, ProductResponse } from '../../services/product.service';
+import { environment } from '../../../../environments/environment';
 import { ProductFormDialogComponent } from './dialogs/product-form-dialog.component';
 import { ProductImportDialogComponent } from './dialogs/product-import-dialog.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -83,6 +84,18 @@ export class ProdutosComponent implements OnInit, OnDestroy {
       this.currentPage = 0;
       this.loadProducts();
     });
+  }
+
+  getImageUrl(product: Product): string {
+    const imageUrl = product.image_url;
+    if (!imageUrl) return 'assets/images/no-image.png';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return `${imageUrl}?v=${encodeURIComponent(product.updated_at)}`;
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}?v=${encodeURIComponent(product.updated_at)}`;
+    }
+    return `${imageUrl}?v=${encodeURIComponent(product.updated_at)}`;
   }
 
   ngOnInit(): void {
