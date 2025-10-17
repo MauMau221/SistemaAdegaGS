@@ -18,121 +18,163 @@
     <!-- Cards de Resumo -->
     <div class="summary-cards">
       <!-- Vendas -->
-      <mat-card class="summary-card">
+      <mat-card class="summary-card modern-card">
         <mat-card-content>
           <div class="card-header">
-            <mat-icon color="primary">payments</mat-icon>
-            <h2>Vendas</h2>
+            <div class="card-icon sales-icon">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="card-title">
+              <h2>Vendas</h2>
+              <p class="card-subtitle">Receita total</p>
+            </div>
           </div>
-          <div class="card-stats">
-            <div class="stat">
-              <span class="label">Hoje</span>
-              <span class="value">{{summary ? formatCurrency(summary.sales.today) : 'R$ 0,00'}}</span>
+          <div class="card-content">
+            <div class="main-stat">
+              <span class="main-value">{{summary ? formatCurrency(summary.sales.month) : 'R$ 0,00'}}</span>
+              <span class="main-label">Este Mês</span>
             </div>
-            <div class="stat">
-              <span class="label">Este Mês</span>
-              <span class="value">{{summary ? formatCurrency(summary.sales.month) : 'R$ 0,00'}}</span>
-            </div>
-            <div class="stat">
-              <span class="label">Ticket Médio</span>
-              <span class="value">{{summary ? formatCurrency(summary.sales.average_ticket) : 'R$ 0,00'}}</span>
+            <div class="secondary-stats">
+              <div class="stat">
+                <span class="label">Hoje</span>
+                <span class="value">{{summary ? formatCurrency(summary.sales.today) : 'R$ 0,00'}}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Ticket Médio</span>
+                <span class="value">{{summary ? formatCurrency(summary.sales.average_ticket) : 'R$ 0,00'}}</span>
+              </div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Pedidos -->
-      <mat-card class="summary-card">
+      <mat-card class="summary-card modern-card">
         <mat-card-content>
           <div class="card-header">
-            <mat-icon color="accent">shopping_cart</mat-icon>
-            <h2>Pedidos</h2>
+            <div class="card-icon orders-icon">
+              <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="card-title">
+              <h2>Pedidos</h2>
+              <p class="card-subtitle">Status dos pedidos</p>
+            </div>
           </div>
-          <div class="card-stats">
-            <div class="stat">
-              <span class="label">Pendentes</span>
-              <span class="value" [style.color]="getStatusColor(summary ? summary.orders.pending : 0, 5)">
-                {{summary ? summary.orders.pending : 0}}
-              </span>
+          <div class="card-content">
+            <div class="chart-container">
+              <canvas baseChart
+                [data]="ordersPieChartData"
+                [options]="ordersPieChartOptions"
+                type="pie"
+                class="pie-chart">
+              </canvas>
             </div>
-            <div class="stat">
-              <span class="label">Em Entrega</span>
-              <span class="value">{{summary ? summary.orders.delivering : 0}}</span>
-            </div>
-            <div class="stat">
-              <span class="label">Concluídos</span>
-              <span class="value">{{summary ? summary.orders.completed : 0}}</span>
+            <div class="chart-stats">
+              <div class="stat">
+                <span class="label">Pendentes</span>
+                <span class="value" [style.color]="getStatusColor(summary ? summary.orders.pending : 0, 5)">
+                  {{summary ? summary.orders.pending : 0}}
+                </span>
+              </div>
+              <div class="stat">
+                <span class="label">Concluídos</span>
+                <span class="value">{{summary ? summary.orders.completed : 0}}</span>
+              </div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Estoque -->
-      <mat-card class="summary-card">
+      <mat-card class="summary-card modern-card">
         <mat-card-content>
           <div class="card-header">
-            <mat-icon color="warn">inventory</mat-icon>
-            <h2>Estoque</h2>
+            <div class="card-icon stock-icon">
+              <mat-icon>inventory</mat-icon>
+            </div>
+            <div class="card-title">
+              <h2>Estoque</h2>
+              <p class="card-subtitle">Status do estoque</p>
+            </div>
           </div>
-          <div class="card-stats">
-            <div class="stat">
-              <span class="label">Produtos</span>
-              <span class="value">{{summary ? summary.stock.total_products : 0}}</span>
+          <div class="card-content">
+            <div class="chart-container">
+              <canvas baseChart
+                [data]="stockPieChartData"
+                [options]="stockPieChartOptions"
+                type="pie"
+                class="pie-chart">
+              </canvas>
             </div>
-            <div class="stat">
-              <span class="label">Estoque Baixo</span>
-              <span class="value" [style.color]="getStatusColor(summary ? summary.stock.low_stock_count : 0, 10)">
-                {{summary ? summary.stock.low_stock_count : 0}}
-              </span>
-            </div>
-            <div class="stat">
-              <span class="label">Valor Total</span>
-              <span class="value">{{summary ? formatCurrency(summary.stock.total_value) : 'R$ 0,00'}}</span>
+            <div class="chart-stats">
+              <div class="stat">
+                <span class="label">Total Produtos</span>
+                <span class="value">{{summary ? summary.stock.total_products : 0}}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Estoque Baixo</span>
+                <span class="value" [style.color]="getStatusColor(summary ? summary.stock.low_stock_count : 0, 10)">
+                  {{summary ? summary.stock.low_stock_count : 0}}
+                </span>
+              </div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
       <!-- Usuários -->
-      <mat-card class="summary-card">
+      <mat-card class="summary-card modern-card">
         <mat-card-content>
           <div class="card-header">
-            <mat-icon>people</mat-icon>
-            <h2>Usuários</h2>
+            <div class="card-icon users-icon">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="card-title">
+              <h2>Usuários</h2>
+              <p class="card-subtitle">Distribuição de usuários</p>
+            </div>
           </div>
-          <div class="card-stats">
-            <div class="stat">
-              <span class="label">Total</span>
-              <span class="value">{{summary ? summary.users.total : 0}}</span>
+          <div class="card-content">
+            <div class="chart-container">
+              <canvas baseChart
+                [data]="usersPieChartData"
+                [options]="usersPieChartOptions"
+                type="pie"
+                class="pie-chart">
+              </canvas>
             </div>
-            <div class="stat">
-              <span class="label">Novos (Mês)</span>
-              <span class="value">{{summary ? summary.users.new_this_month : 0}}</span>
-            </div>
-            <div class="stat">
-              <span class="label">Clientes</span>
-              <span class="value">{{summary ? summary.users.customers : 0}}</span>
+            <div class="chart-stats">
+              <div class="stat">
+                <span class="label">Total</span>
+                <span class="value">{{summary ? summary.users.total : 0}}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Novos (Mês)</span>
+                <span class="value">{{summary ? summary.users.new_this_month : 0}}</span>
+              </div>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
 
-    <!-- Gráfico de Vendas (temporariamente desabilitado) -->
-    <!--
-    <mat-card class="chart-card">
+    <!-- Gráfico de Vendas -->
+    <mat-card class="chart-card modern-card">
       <mat-card-header>
-        <mat-card-title>Vendas do Mês</mat-card-title>
+        <mat-card-title>Vendas dos Últimos 30 Dias</mat-card-title>
+        <mat-card-subtitle>Evolução das vendas</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <canvas baseChart
-          [data]="salesChartData"
-          [options]="salesChartOptions"
-          type="line">
-        </canvas>
+        <div class="chart-container-large">
+          <canvas baseChart
+            [data]="salesChartData"
+            [options]="salesChartOptions"
+            type="line"
+            class="line-chart">
+          </canvas>
+        </div>
       </mat-card-content>
     </mat-card>
-    -->
 
     <!-- Top Products e Customers -->
     <div class="dashboard-tables">

@@ -412,10 +412,104 @@ Após o deploy, os seguintes usuários estarão disponíveis:
 - **Senha**: `12345678`
 - **Acesso**: E-commerce (loja)
 
+## 📊 Comandos para Gráficos e Dashboard
+
+### Instalação dos Pacotes de Gráficos
+
+```bash
+# 1. Navegar para o diretório frontend
+cd frontend
+
+# 2. Instalar dependências dos gráficos
+npm install ng2-charts@5.0.3 chart.js@4.4.0
+
+# 3. Verificar se as dependências foram instaladas
+npm list ng2-charts chart.js
+```
+
+### Configuração dos Gráficos
+
+```bash
+# 1. Verificar se o ng2-charts está funcionando
+ng build --configuration=development
+
+# 2. Se houver erros, reinstalar as dependências
+npm uninstall ng2-charts chart.js
+npm install ng2-charts@5.0.3 chart.js@4.4.0
+
+# 3. Limpar cache do Angular
+ng cache clean
+```
+
+### Comandos para Dados de Teste
+
+```bash
+# 1. Navegar para o backend
+cd backend
+
+# 2. Executar seeder para criar dados de teste
+php artisan db:seed --class=DashboardTestDataSeeder
+
+# 3. Verificar se os dados foram criados
+php artisan tinker --execute="echo 'Users: ' . App\Models\User::count(); echo 'Products: ' . App\Models\Product::count(); echo 'Orders: ' . App\Models\Order::count();"
+```
+
+### Testando o Dashboard
+
+```bash
+# 1. Iniciar o backend
+cd backend
+php artisan serve --host=127.0.0.1 --port=8000
+
+# 2. Em outro terminal, iniciar o frontend
+cd frontend
+ng serve --host=0.0.0.0 --port=4200
+
+# 3. Acessar o dashboard
+# URL: http://localhost:4200/admin/dashboard
+# Login: admin@adegags.com / password
+```
+
+### Solução de Problemas com Gráficos
+
+```bash
+# Se os gráficos não aparecem:
+
+# 1. Verificar se as dependências estão corretas
+npm list ng2-charts chart.js
+
+# 2. Limpar cache e reinstalar
+rm -rf node_modules package-lock.json
+npm install
+
+# 3. Verificar se o BaseChartDirective está importado
+# No arquivo dashboard.component.ts deve ter:
+# import { NgChartsModule } from 'ng2-charts';
+
+# 4. Verificar se o NgChartsModule está nos imports
+# imports: [..., NgChartsModule]
+```
+
+### Comandos de Desenvolvimento
+
+```bash
+# Para desenvolvimento com hot reload
+ng serve --host=0.0.0.0 --port=4200 --watch
+
+# Para build de produção
+ng build --configuration=production
+
+# Para testar apenas o backend
+cd backend
+php artisan serve --host=127.0.0.1 --port=8000
+curl http://localhost:8000/api/admin/dashboard/summary
+```
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Backend**: Laravel 10, MySQL, Redis (opcional)
-- **Frontend**: Angular 17, Angular Material, Chart.js
+- **Frontend**: Angular 17, Angular Material, Chart.js, ng2-charts
+- **Gráficos**: Chart.js 4.4.0, ng2-charts 5.0.3
 - **Servidor**: Nginx, PHP 8.1-FPM
 - **SSL**: Let's Encrypt
 - **Backup**: Scripts automatizados

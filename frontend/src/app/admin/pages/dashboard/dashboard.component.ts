@@ -10,8 +10,8 @@ import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AdminDashboardService, AdminDashboardSummary, TopProducts, TopCustomers } from '../../services/admin-dashboard.service';
-// import { NgChartsModule } from 'ng2-charts';
-// import { ChartConfiguration } from 'chart.js';
+import { NgChartsModule } from 'ng2-charts';
+import { PIE_CHART_OPTIONS, LINE_CHART_OPTIONS, CHART_COLORS } from './chart-config';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -25,7 +25,7 @@ import { AdminDashboardService, AdminDashboardSummary, TopProducts, TopCustomers
     MatTabsModule,
     MatTableModule,
     RouterModule,
-    // NgChartsModule
+    NgChartsModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
@@ -36,7 +36,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   topProducts: TopProducts[] = [];
   topCustomers: TopCustomers[] = [];
 
-  // Configuração do gráfico de vendas (temporariamente desabilitado)
+  // Gráfico de vendas
   salesChartData: any = {
     labels: [],
     datasets: [
@@ -54,25 +54,59 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ]
   };
 
-  salesChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    elements: {
-      line: {
-        tension: 0.4
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    },
-    plugins: {
-      legend: {
-        display: false
-      }
-    }
+  salesChartOptions = LINE_CHART_OPTIONS;
+
+  // Gráfico de pizza para pedidos
+  ordersPieChartData: any = {
+    labels: ['Pendentes', 'Em Entrega', 'Concluídos', 'Cancelados'],
+    datasets: [{
+      data: [0, 0, 0, 0],
+      backgroundColor: [
+        '#ff9800',
+        '#2196f3', 
+        '#4caf50',
+        '#f44336'
+      ],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
   };
+
+  ordersPieChartOptions = PIE_CHART_OPTIONS;
+
+  // Gráfico de pizza para usuários
+  usersPieChartData: any = {
+    labels: ['Clientes', 'Funcionários', 'Admins'],
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: [
+        '#4caf50',
+        '#2196f3',
+        '#ff9800'
+      ],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  };
+
+  usersPieChartOptions = PIE_CHART_OPTIONS;
+
+  // Gráfico de pizza para estoque
+  stockPieChartData: any = {
+    labels: ['Estoque Normal', 'Estoque Baixo', 'Sem Estoque'],
+    datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: [
+        '#4caf50',
+        '#ff9800',
+        '#f44336'
+      ],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  };
+
+  stockPieChartOptions = PIE_CHART_OPTIONS;
 
   private destroy$ = new Subject<void>();
 
@@ -96,6 +130,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.topProducts = data.topProducts;
           this.topCustomers = data.topCustomers;
           this.updateSalesChart(data.salesChart);
+          this.updatePieCharts();
           this.loading = false;
         },
         error: (error) => {
@@ -108,6 +143,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private updateSalesChart(chartData: { labels: string[], data: number[] }): void {
     this.salesChartData.labels = chartData.labels;
     this.salesChartData.datasets[0].data = chartData.data;
+  }
+
+  private updatePieCharts(): void {
+    if (!this.summary) return;
+
+    // Atualizar gráfico de pedidos
+    this.ordersPieChartData = {
+      ...this.ordersPieChartData,
+      datasets: [{
+        ...this.ordersPieChartData.datasets[0],
+        data: [
+          this.summary.orders.pending,
+          this.summary.orders.delivering,
+          this.summary.orders.completed,
+          this.summary.orders.cancelled
+        ]
+      }]
+    };
+
+    // Atualizar gráfico de usuários
+    this.usersPieChartData = {
+      ...this.usersPieChartData,
+      datasets: [{
+        ...this.usersPieChartData.datasets[0],
+        data: [
+          this.summary.users.customers,
+          this.summary.users.employees,
+          this.summary.users.admins
+        ]
+      }]
+    };
+
+    // Calcular dados do estoque
+    const normalStock = this.summary.stock.total_products - this.summary.stock.low_stock_count - this.summary.stock.out_of_stock_count;
+    this.stockPieChartData = {
+      ...this.stockPieChartData,
+      datasets: [{
+        ...this.stockPieChartData.datasets[0],
+        data: [
+          Math.max(0, normalStock),
+          this.summary.stock.low_stock_count,
+          this.summary.stock.out_of_stock_count
+        ]
+      }]
+    };
   }
 
   formatCurrency(value: number): string {
@@ -130,5 +210,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   refresh(): void {
     this.loading = true;
     this.loadDashboardData();
+  }
+
+  // Método para forçar atualização dos gráficos
+  private forceChartUpdate(): void {
+    // Força a detecção de mudanças nos gráficos
+    setTimeout(() => {
+      this.ordersPieChartData = { ...this.ordersPieChartData };
+      this.usersPieChartData = { ...this.usersPieChartData };
+      this.stockPieChartData = { ...this.stockPieChartData };
+      this.salesChartData = { ...this.salesChartData };
+    }, 100);
   }
 }

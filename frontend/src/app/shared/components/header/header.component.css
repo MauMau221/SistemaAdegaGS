@@ -59,7 +59,7 @@
 
 .menu-item:hover,
 .menu-item.active {
-  color: #00A868;
+  color: var(--primary-dark);
 }
 
 .menu-item.active::after {
@@ -69,7 +69,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #00A868;
+  background-color: var(--primary-dark);
 }
 
 /* Botões de Ação */
@@ -149,7 +149,7 @@
 
 /* Botão de Login */
 .login-button {
-  color: #00A868 !important;
+  color: var(--primary-dark) !important;
 }
 
 .profile-button {
@@ -267,7 +267,7 @@
 
 .mobile-menu-item.active {
   background-color: #E8F5E8;
-  color: #00A868;
+  color: var(--primary-dark);
 }
 
 .mobile-menu-item .mat-icon {
@@ -278,7 +278,7 @@
 }
 
 .mobile-menu-item.active .mat-icon {
-  color: #00A868;
+  color: var(--primary-dark);
 }
 
 .mobile-search-field {

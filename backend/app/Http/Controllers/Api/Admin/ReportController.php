@@ -17,34 +17,75 @@ class ReportController extends Controller
     {
         $today = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
+        $thisWeek = Carbon::now()->startOfWeek();
         
-        // Resumo geral
-        $totalProducts = Product::count();
-        $totalCategories = Category::count();
-        $totalUsers = User::count();
-        $totalOrders = Order::count();
-        
-        // Vendas do mês
-        $monthlySales = Order::where('created_at', '>=', $thisMonth)
-            ->where('status', 'completed')
-            ->sum('total');
-        
-        // Vendas de hoje
+        // Vendas
         $dailySales = Order::whereDate('created_at', $today)
             ->where('status', 'completed')
             ->sum('total');
+            
+        $weeklySales = Order::where('created_at', '>=', $thisWeek)
+            ->where('status', 'completed')
+            ->sum('total');
+            
+        $monthlySales = Order::where('created_at', '>=', $thisMonth)
+            ->where('status', 'completed')
+            ->sum('total');
+            
+        $totalOrders = Order::where('status', 'completed')->count();
+        $averageTicket = $totalOrders > 0 ? $monthlySales / $totalOrders : 0;
         
-        // Pedidos pendentes
+        // Pedidos por status
         $pendingOrders = Order::where('status', 'pending')->count();
+        $deliveringOrders = Order::where('status', 'delivering')->count();
+        $completedOrders = Order::where('status', 'completed')->count();
+        $cancelledOrders = Order::where('status', 'cancelled')->count();
+        $totalOrderAmount = Order::where('status', 'completed')->sum('total');
+        
+        // Estoque
+        $totalProducts = Product::count();
+        $lowStockCount = Product::whereColumn('current_stock', '<=', 'min_stock')->count();
+        $outOfStockCount = Product::where('current_stock', 0)->count();
+        $totalStockValue = Product::sum(\DB::raw('current_stock * price'));
+        $categoriesCount = Category::count();
+        
+        // Usuários
+        $totalUsers = User::count();
+        $customers = User::where('type', 'customer')->count();
+        $employees = User::where('type', 'employee')->count();
+        $admins = User::where('type', 'admin')->count();
+        $newThisMonth = User::where('created_at', '>=', $thisMonth)->count();
         
         return response()->json([
-            'total_products' => $totalProducts,
-            'total_categories' => $totalCategories,
-            'total_users' => $totalUsers,
-            'total_orders' => $totalOrders,
-            'monthly_sales' => $monthlySales,
-            'daily_sales' => $dailySales,
-            'pending_orders' => $pendingOrders
+            'sales' => [
+                'today' => $dailySales,
+                'week' => $weeklySales,
+                'month' => $monthlySales,
+                'total_orders' => $totalOrders,
+                'average_ticket' => $averageTicket,
+                'by_payment_method' => []
+            ],
+            'stock' => [
+                'total_products' => $totalProducts,
+                'low_stock_count' => $lowStockCount,
+                'out_of_stock_count' => $outOfStockCount,
+                'total_value' => $totalStockValue,
+                'categories_count' => $categoriesCount
+            ],
+            'users' => [
+                'total' => $totalUsers,
+                'customers' => $customers,
+                'employees' => $employees,
+                'admins' => $admins,
+                'new_this_month' => $newThisMonth
+            ],
+            'orders' => [
+                'pending' => $pendingOrders,
+                'delivering' => $deliveringOrders,
+                'completed' => $completedOrders,
+                'cancelled' => $cancelledOrders,
+                'total_amount' => $totalOrderAmount
+            ]
         ]);
     }
 
@@ -59,27 +100,54 @@ class ReportController extends Controller
             ->orderBy('date')
             ->get();
         
-        return response()->json($salesData);
+        $labels = $salesData->pluck('date')->map(function($date) {
+            return Carbon::parse($date)->format('d/m');
+        })->toArray();
+        
+        $data = $salesData->pluck('total')->toArray();
+        
+        return response()->json([
+            'labels' => $labels,
+            'data' => $data
+        ]);
     }
 
     public function topProducts(): JsonResponse
     {
         $topProducts = Product::with('category')
             ->withSum('orderItems', 'quantity')
+            ->withSum('orderItems', 'price')
             ->orderBy('order_items_sum_quantity', 'desc')
             ->take(5)
-            ->get();
+            ->get()
+            ->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'quantity_sold' => $product->order_items_sum_quantity ?? 0,
+                    'total_revenue' => $product->order_items_sum_price ?? 0
+                ];
+            });
         
         return response()->json($topProducts);
     }
 
     public function topCustomers(): JsonResponse
     {
-        $topCustomers = User::withSum('orders', 'total')
+        $topCustomers = User::withCount('orders')
+            ->withSum('orders', 'total')
             ->where('type', 'customer')
             ->orderBy('orders_sum_total', 'desc')
             ->take(5)
-            ->get();
+            ->get()
+            ->map(function($customer) {
+                return [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'orders_count' => $customer->orders_count,
+                    'total_spent' => $customer->orders_sum_total ?? 0
+                ];
+            });
         
         return response()->json($topCustomers);
     }
