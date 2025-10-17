@@ -159,7 +159,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
     if (this.salesReport && this.salesChartRef?.nativeElement) {
       const salesData = this.salesReport.sales_by_period || [];
       this.salesChart?.destroy();
-      if (salesData.length) {
+      if (salesData.length > 0) {
         console.log('Criando gráfico de vendas com dados:', salesData);
         const cfg: ChartConfiguration<'line'> = {
           type: 'line',
@@ -194,7 +194,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
         };
         this.salesChart = new Chart(this.salesChartRef.nativeElement, cfg);
       } else {
-        console.log('Dados de vendas insuficientes:', salesData);
+        console.log('Dados de vendas insuficientes - mostrando mensagem de "sem dados"');
       }
     }
 
@@ -202,7 +202,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
     if (this.customerReport && this.customersChartRef?.nativeElement) {
       const customerData = this.customerReport.new_customers || [];
       this.customersChart?.destroy();
-      if (customerData.length) {
+      if (customerData.length > 0) {
         console.log('Criando gráfico de clientes com dados:', customerData);
         const cfg: ChartConfiguration<'bar'> = {
           type: 'bar',
@@ -214,7 +214,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
         };
         this.customersChart = new Chart(this.customersChartRef.nativeElement, cfg);
       } else {
-        console.log('Dados de clientes insuficientes:', customerData);
+        console.log('Dados de clientes insuficientes - mostrando mensagem de "sem dados"');
       }
     }
 
@@ -222,7 +222,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
     if (this.stockReport && this.stockChartRef?.nativeElement) {
       const stockData = this.stockReport.stock_movements || [];
       this.stockChart?.destroy();
-      if (stockData.length) {
+      if (stockData.length > 0) {
         console.log('Criando gráfico de estoque com dados:', stockData);
         const cfg: ChartConfiguration<'bar'> = {
           type: 'bar',
@@ -237,7 +237,7 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
         };
         this.stockChart = new Chart(this.stockChartRef.nativeElement, cfg);
       } else {
-        console.log('Dados de estoque insuficientes:', stockData);
+        console.log('Dados de estoque insuficientes - mostrando mensagem de "sem dados"');
       }
     }
   }

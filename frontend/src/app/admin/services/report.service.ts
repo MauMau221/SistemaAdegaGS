@@ -146,8 +146,18 @@ export class ReportService {
                 count: p.count || 0,
                 total: p.total || 0,
               })),
-              top_selling_products: [],
-              sales_by_category: []
+              top_selling_products: this.normalizeArray(res?.top_selling_products || []).map((p: any) => ({
+                product_id: p.product_id || p.id,
+                product_name: p.product_name || p.name,
+                quantity_sold: p.quantity_sold || p.total_sold || 0,
+                revenue: p.revenue || p.total_revenue || 0,
+              })),
+              sales_by_category: this.normalizeArray(res?.sales_by_category || []).map((c: any) => ({
+                category_id: c.category_id || c.id,
+                category_name: c.category_name || c.name,
+                sales: c.sales || c.orders_count || 0,
+                revenue: c.revenue || c.total_sales || 0,
+              }))
             };
             subscriber.next(mapped);
             subscriber.complete();
@@ -181,7 +191,13 @@ export class ReportService {
                 quantity: m.quantity,
                 value: m.value
               })),
-              stock_by_category: []
+              stock_by_category: this.normalizeArray(res?.stock_by_category || []).map((c: any) => ({
+                category_id: c.category_id || c.id,
+                category_name: c.category_name || c.name,
+                products_count: c.products_count || c.total_products || 0,
+                total_stock: c.total_stock || 0,
+                total_value: c.total_value || c.total_stock_value || 0
+              }))
             };
             subscriber.next(mapped);
             subscriber.complete();
@@ -213,7 +229,7 @@ export class ReportService {
                 average_ticket: s.total_revenue / (s.count || 1)
               })),
               retention_rate: res?.retention_rate || 0,
-              churn_rate: 0
+              churn_rate: res?.churn_rate || (100 - (res?.retention_rate || 0))
             };
             subscriber.next(mapped);
             subscriber.complete();
@@ -244,8 +260,8 @@ export class ReportService {
               cash_operations: this.normalizeArray(res?.cash_operations).map((o: any) => ({
                 employee_id: o.employee_id,
                 employee_name: o.employee_name,
-                openings: 0, // Mock data
-                closings: 0, // Mock data
+                openings: o.openings || 0,
+                closings: o.closings || 0,
                 transactions: o.transactions,
                 balance_accuracy: o.balance_accuracy
               }))
