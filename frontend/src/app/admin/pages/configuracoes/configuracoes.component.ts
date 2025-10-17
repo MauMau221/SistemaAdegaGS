@@ -13,9 +13,9 @@ import { PaymentSettingsComponent } from './tabs/payment-settings.component';
 import { StockSettingsComponent } from './tabs/stock-settings.component';
 import { OrderSettingsComponent } from './tabs/order-settings.component';
 import { EmailSettingsComponent } from './tabs/email-settings.component';
+import { SecuritySettingsComponent } from './tabs/security-settings.component';
 // These components will be implemented later
 // import { BackupSettingsComponent } from './tabs/backup-settings.component';
-// import { SecuritySettingsComponent } from './tabs/security-settings.component';
 // import { IntegrationSettingsComponent } from './tabs/integration-settings.component';
 
 @Component({
@@ -34,9 +34,9 @@ import { EmailSettingsComponent } from './tabs/email-settings.component';
     StockSettingsComponent,
     OrderSettingsComponent,
     EmailSettingsComponent,
+    SecuritySettingsComponent,
     // These components will be implemented later
     // BackupSettingsComponent,
-    // SecuritySettingsComponent,
     // IntegrationSettingsComponent
   ],
   template: `
@@ -95,19 +95,19 @@ import { EmailSettingsComponent } from './tabs/email-settings.component';
               </app-email-settings>
             </mat-tab>
 
+            <mat-tab label="Segurança">
+              <app-security-settings
+                [settings]="settings"
+                (settingsChange)="onSettingsChange($event)">
+              </app-security-settings>
+            </mat-tab>
+
             <!-- These tabs will be implemented later -->
             <!-- <mat-tab label="Backup">
               <app-backup-settings
                 [settings]="settings"
                 (settingsChange)="onSettingsChange($event)">
               </app-backup-settings>
-            </mat-tab>
-
-            <mat-tab label="Segurança">
-              <app-security-settings
-                [settings]="settings"
-                (settingsChange)="onSettingsChange($event)">
-              </app-security-settings>
             </mat-tab>
 
             <mat-tab label="Integrações">

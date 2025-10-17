@@ -43,6 +43,8 @@ export class StockService {
     page?: number;
     per_page?: number;
     low_stock?: boolean;
+    category?: string;
+    stock_filter?: string;
   } = {}): Observable<StockResponse> {
     return this.http.get<StockResponse>(this.apiUrl, { params: { ...params } });
   }
@@ -69,5 +71,9 @@ export class StockService {
     reason: string;
   }): Observable<Product> {
     return this.http.post<Product>(`${this.apiUrl}/${productId}`, data);
+  }
+
+  getCategories(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/categories`);
   }
 }

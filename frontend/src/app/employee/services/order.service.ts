@@ -37,6 +37,23 @@ export interface Payment {
   created_at: string;
 }
 
+export interface Address {
+  id: number;
+  name?: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipcode: string;
+  notes?: string;
+  is_default: boolean;
+  is_active: boolean;
+  full_address?: string;
+  short_address?: string;
+}
+
 export interface Order {
   id: number;
   order_number: string;
@@ -49,10 +66,12 @@ export interface Order {
   items: OrderItem[];
   total: number;
   status: OrderStatus;
-  payment?: Payment;
+  payment?: Payment | Payment[]; // Pode ser um objeto ou array
   payment_method?: PaymentMethod;
   customer_name?: string;
   customer_phone?: string;
+  delivery_address?: Address;
+  delivery_notes?: string;
   created_at: string;
   updated_at: string;
 }
@@ -67,10 +86,14 @@ export interface CreateOrderRequest {
   payment_method: PaymentMethod;
   customer_name?: string;
   customer_phone?: string;
+  received_amount?: number;
+  change_amount?: number;
 }
 
 export interface CreateOrderResponse extends Order {
   items: (OrderItem & { product_name?: string })[];
+  received_amount?: number;
+  change_amount?: number;
 }
 
 @Injectable({
@@ -103,7 +126,13 @@ export class OrderService {
     }
 
     return this.http.get<Order[]>(this.apiUrl, { params }).pipe(
-      tap(orders => this.ordersSubject.next(orders))
+      tap(orders => {
+        // Só atualizar o subject se não tivermos filtros específicos
+        // (para evitar conflitos com o carregamento local)
+        if (!filters?.status) {
+          this.ordersSubject.next(orders);
+        }
+      })
     );
   }
 
@@ -118,6 +147,10 @@ export class OrderService {
         this.ordersSubject.next(updatedOrders);
       })
     );
+  }
+
+  completeOrder(orderId: number): Observable<Order> {
+    return this.updateOrderStatus(orderId, 'completed');
   }
 
   createOrder(order: CreateOrderRequest): Observable<CreateOrderResponse> {
@@ -171,7 +204,7 @@ export class OrderService {
         <p style="text-align: right; font-weight: bold;">
           Total: R$ ${order.total.toFixed(2)}
         </p>
-        <p>Forma de pagamento: ${order.payment?.payment_method || 'Não informado'}</p>
+        <p>Forma de pagamento: ${this.getPaymentMethodFromOrder(order)}</p>
         <p>Status: ${this.getStatusLabel(order.status)}</p>
       </div>
     `;
@@ -185,5 +218,36 @@ export class OrderService {
       cancelled: 'Cancelado'
     };
     return labels[status];
+  }
+
+  private getPaymentMethodFromOrder(order: Order): string {
+    // Primeiro tenta o payment_method direto do order
+    if (order.payment_method) {
+      return this.formatPaymentMethod(order.payment_method);
+    }
+    
+    // Depois tenta o payment_method do objeto payment (pode ser array ou objeto)
+    if (order.payment) {
+      if (Array.isArray(order.payment) && order.payment.length > 0) {
+        // Se é array, pega o primeiro payment
+        return this.formatPaymentMethod(order.payment[0].payment_method);
+      } else if (!Array.isArray(order.payment)) {
+        // Se é objeto único
+        return this.formatPaymentMethod(order.payment.payment_method);
+      }
+    }
+    
+    return 'Não informado';
+  }
+
+  private formatPaymentMethod(method: string): string {
+    const methods: { [key: string]: string } = {
+      'dinheiro': 'Dinheiro',
+      'cartao': 'Cartão',
+      'pix': 'PIX',
+      'credito': 'Cartão de Crédito',
+      'debito': 'Cartão de Débito'
+    };
+    return methods[method] || method;
   }
 }

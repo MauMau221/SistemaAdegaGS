@@ -41,6 +41,11 @@ export const routes: Routes = [
         path: 'pedidos',
         loadComponent: () => import('./orders/pages/orders-list/orders-list.component').then(m => m.OrdersListComponent),
         canActivate: [authGuard]
+      },
+      {
+        path: 'enderecos',
+        loadComponent: () => import('./user/pages/enderecos/enderecos.component').then(m => m.EnderecosComponent),
+        canActivate: [authGuard]
       }
     ]
   },

@@ -28,6 +28,26 @@ import { Order, OrderStatus } from '../../../services/order.service';
         <p *ngIf="data.order.user.phone"><strong>Telefone:</strong> {{data.order.user.phone}}</p>
       </div>
 
+      <!-- Endereço de Entrega -->
+      <div class="section" *ngIf="data.order.delivery_address">
+        <h3>Endereço de Entrega</h3>
+        <div class="address-details">
+          <p><strong>Endereço:</strong> {{data.order.delivery_address.street}}, {{data.order.delivery_address.number}}</p>
+          <p *ngIf="data.order.delivery_address.complement"><strong>Complemento:</strong> {{data.order.delivery_address.complement}}</p>
+          <p><strong>Bairro:</strong> {{data.order.delivery_address.neighborhood}}</p>
+          <p><strong>Cidade:</strong> {{data.order.delivery_address.city}}/{{data.order.delivery_address.state}}</p>
+          <p><strong>CEP:</strong> {{data.order.delivery_address.zipcode}}</p>
+          <p *ngIf="data.order.delivery_address.name"><strong>Nome do Endereço:</strong> {{data.order.delivery_address.name}}</p>
+          <p *ngIf="data.order.delivery_address.notes"><strong>Observações:</strong> {{data.order.delivery_address.notes}}</p>
+          <p *ngIf="data.order.delivery_notes"><strong>Observações do Pedido:</strong> {{data.order.delivery_notes}}</p>
+        </div>
+      </div>
+
+      <div class="section" *ngIf="!data.order.delivery_address">
+        <h3>Endereço de Entrega</h3>
+        <p class="no-address">Nenhum endereço de entrega informado</p>
+      </div>
+
       <mat-divider></mat-divider>
 
       <!-- Itens -->
@@ -52,8 +72,8 @@ import { Order, OrderStatus } from '../../../services/order.service';
       <!-- Pagamento -->
       <div class="section">
         <h3>Pagamento</h3>
-        <p><strong>Método:</strong> {{data.order.payment?.payment_method || 'Não informado'}}</p>
-        <p><strong>Status:</strong> {{data.order.payment?.status || 'Não informado'}}</p>
+        <p><strong>Método:</strong> {{getPaymentMethod(data.order)}}</p>
+        <p><strong>Status:</strong> {{getPaymentStatus(data.order)}}</p>
         <p class="total"><strong>Total:</strong> {{data.formatCurrency(data.order.total)}}</p>
       </div>
 
@@ -127,6 +147,22 @@ import { Order, OrderStatus } from '../../../services/order.service';
     mat-dialog-actions {
       margin-top: 20px;
     }
+    
+    .address-details {
+      background-color: #f5f5f5;
+      padding: 12px;
+      border-radius: 4px;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .address-details p {
+      margin: 4px 0;
+    }
+    
+    .no-address {
+      color: #999;
+      font-style: italic;
+    }
   `],
   standalone: true,
   imports: [
@@ -150,4 +186,60 @@ export class OrderDetailsDialogComponent {
       printOrder: (order: Order) => void;
     }
   ) {}
+
+  getPaymentMethod(order: Order): string {
+    // Primeiro tenta o payment_method direto do order
+    if (order.payment_method) {
+      return this.formatPaymentMethod(order.payment_method);
+    }
+    
+    // Depois tenta o payment_method do objeto payment (pode ser array ou objeto)
+    if (order.payment) {
+      if (Array.isArray(order.payment) && order.payment.length > 0) {
+        // Se é array, pega o primeiro payment
+        return this.formatPaymentMethod(order.payment[0].payment_method);
+      } else if (!Array.isArray(order.payment)) {
+        // Se é objeto único
+        return this.formatPaymentMethod(order.payment.payment_method);
+      }
+    }
+    
+    return 'Não informado';
+  }
+
+  getPaymentStatus(order: Order): string {
+    // Tenta o status do objeto payment (pode ser array ou objeto)
+    if (order.payment) {
+      if (Array.isArray(order.payment) && order.payment.length > 0) {
+        // Se é array, pega o primeiro payment
+        return this.formatPaymentStatus(order.payment[0].status);
+      } else if (!Array.isArray(order.payment)) {
+        // Se é objeto único
+        return this.formatPaymentStatus(order.payment.status);
+      }
+    }
+    
+    return 'Não informado';
+  }
+
+  private formatPaymentMethod(method: string): string {
+    const methods: { [key: string]: string } = {
+      'dinheiro': 'Dinheiro',
+      'cartao': 'Cartão',
+      'pix': 'PIX',
+      'credito': 'Cartão de Crédito',
+      'debito': 'Cartão de Débito'
+    };
+    return methods[method] || method;
+  }
+
+  private formatPaymentStatus(status: string): string {
+    const statuses: { [key: string]: string } = {
+      'pending': 'Pendente',
+      'paid': 'Pago',
+      'failed': 'Falhou',
+      'refunded': 'Reembolsado'
+    };
+    return statuses[status] || status;
+  }
 }

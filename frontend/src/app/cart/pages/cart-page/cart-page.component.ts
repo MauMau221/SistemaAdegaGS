@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { CartItem } from '../../../core/models/cart.model';
+import { Product } from '../../../core/models/product.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-cart-page',
@@ -37,5 +39,17 @@ export class CartPageComponent {
 
   checkout(): void {
     // Implementar checkout
+  }
+
+  getImageUrl(product: Product): string {
+    const imageUrl = product.image_url;
+    if (!imageUrl) return 'assets/images/no-image.png';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}?v=${encodeURIComponent(product.updated_at || '')}`;
+    }
+    return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
   }
 }

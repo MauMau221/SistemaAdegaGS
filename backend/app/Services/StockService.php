@@ -26,6 +26,24 @@ class StockService
             ->when(!empty($filters['low_stock']), function ($query) {
                 $query->whereRaw('COALESCE(current_stock, stock_quantity) <= COALESCE(min_stock, min_stock_quantity)');
             })
+            // Filtro por categoria
+            ->when(isset($filters['category']) && $filters['category'] !== '', function ($query) use ($filters) {
+                $query->where('category_id', $filters['category']);
+            })
+            // Filtro por status do estoque
+            ->when(isset($filters['stock_filter']) && $filters['stock_filter'] !== 'all', function ($query) use ($filters) {
+                switch ($filters['stock_filter']) {
+                    case 'low':
+                        $query->whereRaw('COALESCE(current_stock, stock_quantity) <= COALESCE(min_stock, min_stock_quantity)');
+                        break;
+                    case 'out':
+                        $query->whereRaw('COALESCE(current_stock, stock_quantity) = 0');
+                        break;
+                    case 'normal':
+                        $query->whereRaw('COALESCE(current_stock, stock_quantity) > COALESCE(min_stock, min_stock_quantity)');
+                        break;
+                }
+            })
             // Busca por nome, SKU ou código de barras
             ->when(isset($filters['search']) && $filters['search'] !== '', function ($query) use ($filters) {
                 $search = $filters['search'];

@@ -9,7 +9,7 @@
           <div class="cart-items">
             <div *ngFor="let item of cartItems$ | async" class="cart-item">
               <div class="item-image">
-                <img [src]="'assets/images/no-image.jpg'" [alt]="item.product.name">
+                <img [src]="getImageUrl(item.product)" [alt]="item.product.name">
               </div>
               <div class="item-details">
                 <h3 class="item-name">{{ item.product.name }}</h3>
@@ -43,7 +43,48 @@
       <!-- Endereço de Entrega -->
       <mat-step label="Endereço de Entrega" [stepControl]="deliveryForm">
         <form [formGroup]="deliveryForm">
-          <div class="form-grid">
+          <!-- Seleção de Endereços Salvos -->
+          <div *ngIf="addresses.length > 0" class="address-selection">
+            <h3>Endereços Salvos</h3>
+            <div class="address-options">
+              <mat-radio-group [value]="useSavedAddress" (change)="onAddressOptionChange($event)">
+                <mat-radio-button [value]="true" *ngIf="addresses.length > 0">
+                  Usar endereço salvo
+                </mat-radio-button>
+                <mat-radio-button [value]="false">
+                  Usar novo endereço
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+
+            <!-- Lista de Endereços Salvos -->
+            <div *ngIf="useSavedAddress" class="saved-addresses">
+              <mat-card *ngFor="let address of addresses" 
+                        class="address-card" 
+                        [class.selected]="selectedAddressId === address.id"
+                        (click)="selectAddress(address.id)">
+                <mat-card-content>
+                  <div class="address-header">
+                    <h4>{{address.name || 'Endereço'}}</h4>
+                    <mat-chip *ngIf="address.is_default" color="primary" class="default-chip">
+                      <mat-icon>star</mat-icon>
+                      Padrão
+                    </mat-chip>
+                  </div>
+                  <div class="address-details">
+                    <p><strong>{{address.street}}, {{address.number}}</strong></p>
+                    <p *ngIf="address.complement">{{address.complement}}</p>
+                    <p>{{address.neighborhood}}, {{address.city}}/{{address.state}}</p>
+                    <p>CEP: {{address.zipcode}}</p>
+                    <p *ngIf="address.notes"><em>{{address.notes}}</em></p>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- Formulário de Endereço -->
+          <div class="form-grid" *ngIf="!useSavedAddress">
             <div class="cep-field">
               <mat-form-field class="cep-input">
                 <mat-label>CEP</mat-label>
@@ -110,7 +151,7 @@
 
           <div class="step-actions">
             <button mat-button matStepperPrevious>Voltar</button>
-            <button mat-button matStepperNext [disabled]="deliveryForm.invalid">Continuar</button>
+            <button mat-button matStepperNext [disabled]="!isDeliveryFormValid()">Continuar</button>
           </div>
         </form>
       </mat-step>

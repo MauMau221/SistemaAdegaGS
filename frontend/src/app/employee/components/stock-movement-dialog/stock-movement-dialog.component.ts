@@ -58,16 +58,6 @@ interface DialogData {
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="movement.type === 'entrada'">
-          <mat-label>Custo Unitário</mat-label>
-          <input matInput 
-                 type="number" 
-                 [(ngModel)]="movement.unit_cost" 
-                 name="unit_cost" 
-                 step="0.01"
-                 min="0.01">
-          <span matPrefix>R$&nbsp;</span>
-        </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Descrição</mat-label>
@@ -124,8 +114,7 @@ export class StockMovementDialogComponent {
   movement = {
     type: 'entrada',
     quantity: 1,
-    description: '',
-    unit_cost: null as number | null
+    description: ''
   };
 
   constructor(
@@ -139,10 +128,6 @@ export class StockMovementDialogComponent {
     }
 
     if (this.movement.type === 'saida' && this.movement.quantity > this.data.product.current_stock) {
-      return false;
-    }
-
-    if (this.movement.type === 'entrada' && !this.movement.unit_cost) {
       return false;
     }
 

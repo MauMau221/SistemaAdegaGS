@@ -9,6 +9,7 @@ import { CashStatus, CashTransaction, CashReport } from '../models/cash.model';
 })
 export class CashService {
   private apiUrl = `${environment.apiUrl}/cash`;
+  private storageKey = 'cash_data';
   private mockData = {
     status: {
       is_open: false,
@@ -20,10 +21,35 @@ export class CashService {
     transactions: [] as CashTransaction[]
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.loadFromStorage();
+  }
 
   // Mock implementation until backend is ready
   private useMock = true;
+
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        this.mockData = {
+          status: parsed.status || this.mockData.status,
+          transactions: parsed.transactions || this.mockData.transactions
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do caixa do localStorage:', error);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.mockData));
+    } catch (error) {
+      console.error('Erro ao salvar dados do caixa no localStorage:', error);
+    }
+  }
 
   openCash(initialAmount: number): Observable<CashStatus> {
     if (this.useMock) {
@@ -34,6 +60,7 @@ export class CashService {
         initial_amount: initialAmount,
         current_amount: initialAmount
       };
+      this.saveToStorage();
       return of(this.mockData.status);
     }
     return this.http.post<CashStatus>(`${this.apiUrl}/open`, { initial_amount: initialAmount });
@@ -55,6 +82,7 @@ export class CashService {
       };
       this.mockData.status.is_open = false;
       this.mockData.transactions = [];
+      this.saveToStorage();
       return of(report);
     }
     return this.http.post<CashReport>(`${this.apiUrl}/close`, {});
@@ -71,6 +99,7 @@ export class CashService {
       this.mockData.transactions.push(newTransaction);
       this.mockData.status.current_amount += transaction.type === 'entrada' ? 
         transaction.amount : -transaction.amount;
+      this.saveToStorage();
       return of(newTransaction);
     }
     return this.http.post<CashTransaction>(`${this.apiUrl}/transaction`, transaction);

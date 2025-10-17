@@ -9,7 +9,7 @@
           <div class="flex items-center">
             <!-- Imagem -->
             <img 
-              [src]="item.product.images?.[0] || 'assets/images/no-image.jpg'"
+              [src]="getImageUrl(item.product)"
               [alt]="item.product.name"
               class="w-20 h-20 object-cover rounded">
 

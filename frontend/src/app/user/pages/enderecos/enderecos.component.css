@@ -1,0 +1,388 @@
+/* Base styles - seguindo o padrão do Meu Perfil */
+.enderecos-page {
+  padding: 2rem 0;
+  min-height: calc(100vh - 64px);
+  background-color: #f8f9fa;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Header - igual ao Meu Perfil */
+.enderecos-header {
+  margin-bottom: 2rem;
+}
+
+.enderecos-header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1A1A1A;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Content - igual ao Meu Perfil */
+.enderecos-content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.loading p {
+  margin-top: 1rem;
+  color: #666;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #666;
+}
+
+.empty-state mat-icon {
+  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  margin: 0 0 2rem 0;
+}
+
+.empty-state button {
+  background: linear-gradient(135deg, #00A868 0%, #00C978 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 168, 104, 0.3);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+}
+
+.empty-state button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 168, 104, 0.4);
+  background: linear-gradient(135deg, #00C978 0%, #00A868 100%);
+}
+
+.empty-state button mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: white;
+  margin: 0;
+}
+
+/* Section header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+.section-header button {
+  background: linear-gradient(135deg, #00A868 0%, #00C978 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 168, 104, 0.2);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+}
+
+.section-header button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 168, 104, 0.3);
+  background: linear-gradient(135deg, #00C978 0%, #00A868 100%);
+}
+
+.section-header button mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: white;
+  margin: 0;
+}
+
+/* Addresses grid */
+.addresses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Address card */
+.address-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.address-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.address-card.default {
+  border-color: #00A868;
+  background: #f8fff9;
+}
+
+/* Card header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.address-info h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin: 0 0 0.5rem 0;
+}
+
+.default-chip {
+  font-size: 0.75rem;
+}
+
+/* Address details */
+.address-details {
+  margin-bottom: 1rem;
+}
+
+.address-details p {
+  margin: 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.address-details strong {
+  color: #1A1A1A;
+  font-weight: 600;
+}
+
+/* Card actions */
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Dialog styles - seguindo o padrão do Meu Perfil */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: auto;
+  position: relative;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  color: #1A1A1A;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-button {
+  color: #666;
+}
+
+/* Dialog form - igual ao Meu Perfil */
+.dialog-form {
+  padding: 2rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 1rem;
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row .cep-field {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.form-actions button {
+  min-width: 120px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .enderecos-page {
+    padding: 1rem 0;
+  }
+
+  .enderecos-content {
+    padding: 1.5rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .addresses-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card-actions {
+    justify-content: center;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .empty-state button {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .section-header button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+  }
+
+  .dialog-overlay {
+    padding: 0.5rem;
+  }
+
+  .dialog-content {
+    max-height: 95vh;
+    max-width: 95vw;
+  }
+
+  .dialog-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+  }
+
+  .dialog-form {
+    padding: 1.5rem;
+  }
+}

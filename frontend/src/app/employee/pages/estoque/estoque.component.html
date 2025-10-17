@@ -60,10 +60,37 @@
             </button>
           </mat-form-field>
 
-          <button mat-raised-button [color]="showLowStock ? 'warn' : 'primary'" (click)="toggleLowStock()">
-            <mat-icon>warning</mat-icon>
-            {{showLowStock ? 'Mostrar Todos' : 'Estoque Baixo'}}
-          </button>
+          <mat-form-field appearance="outline">
+            <mat-label>Categoria</mat-label>
+            <mat-select [(ngModel)]="selectedCategory" (selectionChange)="onCategoryChange()">
+              <mat-option value="">Todas as categorias</mat-option>
+              <mat-option *ngFor="let category of categories" [value]="category.id">
+                {{category.name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status do Estoque</mat-label>
+            <mat-select [(ngModel)]="stockFilter" (selectionChange)="onStockFilterChange()">
+              <mat-option value="all">Todos os produtos</mat-option>
+              <mat-option value="low">Estoque baixo</mat-option>
+              <mat-option value="out">Sem estoque</mat-option>
+              <mat-option value="normal">Estoque normal</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="filter-buttons">
+            <button mat-raised-button [color]="showLowStock ? 'warn' : 'primary'" (click)="toggleLowStock()">
+              <mat-icon>warning</mat-icon>
+              {{showLowStock ? 'Mostrar Todos' : 'Estoque Baixo'}}
+            </button>
+            
+            <button mat-raised-button color="accent" (click)="refreshData()">
+              <mat-icon>refresh</mat-icon>
+              Atualizar
+            </button>
+          </div>
         </div>
       </mat-card-content>
     </mat-card>
@@ -89,7 +116,7 @@
 
           <!-- Estoque -->
           <ng-container matColumnDef="stock_quantity">
-            <th mat-header-cell *matHeaderCellDef>Estoque</th>
+            <th mat-header-cell *matHeaderCellDef>Estoque Atual</th>
             <td mat-cell *matCellDef="let product">
               <span [style.color]="getStockColor(product.current_stock ?? product.stock_quantity, (product.min_stock ?? product.min_stock_quantity) || 0)">
                 {{product.current_stock ?? product.stock_quantity}}
@@ -97,10 +124,27 @@
             </td>
           </ng-container>
 
-          <!-- Preço -->
+          <!-- Estoque Mínimo -->
+          <ng-container matColumnDef="min_stock">
+            <th mat-header-cell *matHeaderCellDef>Estoque Mín.</th>
+            <td mat-cell *matCellDef="let product">
+              {{(product.min_stock ?? product.min_stock_quantity) || 0}}
+            </td>
+          </ng-container>
+
+          <!-- Preço de Venda -->
           <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef>Preço</th>
+            <th mat-header-cell *matHeaderCellDef>Preço Venda</th>
             <td mat-cell *matCellDef="let product">{{formatCurrency(product.price)}}</td>
+          </ng-container>
+
+          <!-- Preço de Custo -->
+          <ng-container matColumnDef="cost_price">
+            <th mat-header-cell *matHeaderCellDef>Preço Custo</th>
+            <td mat-cell *matCellDef="let product">
+              <span *ngIf="product.cost_price">{{formatCurrency(product.cost_price)}}</span>
+              <span *ngIf="!product.cost_price" class="no-data">-</span>
+            </td>
           </ng-container>
 
           <!-- Ações -->
@@ -112,6 +156,20 @@
                       (click)="openStockMovement(product)"
                       matTooltip="Movimentar Estoque">
                 <mat-icon>swap_horiz</mat-icon>
+              </button>
+              
+              <button mat-icon-button 
+                      color="accent" 
+                      (click)="viewProductHistory(product)"
+                      matTooltip="Ver Histórico">
+                <mat-icon>history</mat-icon>
+              </button>
+              
+              <button mat-icon-button 
+                      color="warn" 
+                      (click)="adjustStock(product)"
+                      matTooltip="Ajuste Rápido">
+                <mat-icon>edit</mat-icon>
               </button>
             </td>
           </ng-container>
@@ -125,7 +183,7 @@
           [length]="totalItems"
           [pageSize]="pageSize"
           [pageIndex]="currentPage"
-          [pageSizeOptions]="[15, 30, 50]"
+          [pageSizeOptions]="[10, 15, 30, 50]"
           (page)="onPageChange($event)">
         </mat-paginator>
 

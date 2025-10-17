@@ -63,11 +63,23 @@ h1 {
 .filters {
   display: flex;
   gap: 20px;
-  align-items: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .filters mat-form-field {
   flex: 1;
+  min-width: 200px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-buttons button {
+  white-space: nowrap;
 }
 
 /* Products Table */
@@ -80,8 +92,17 @@ h1 {
 }
 
 .mat-column-actions {
-  width: 80px;
+  width: 150px;
   text-align: center;
+}
+
+.mat-column-actions button {
+  margin: 0 2px;
+}
+
+.no-data {
+  color: rgba(0, 0, 0, 0.38);
+  font-style: italic;
 }
 
 .sku {

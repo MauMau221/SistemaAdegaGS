@@ -13,6 +13,8 @@ class Order extends Model
         'order_number',
         'status',
         'total',
+        'delivery_address_id',
+        'delivery_notes',
     ];
 
     protected $casts = [
@@ -32,6 +34,11 @@ class Order extends Model
     public function payment(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function deliveryAddress(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'delivery_address_id');
     }
 
     protected static function boot()

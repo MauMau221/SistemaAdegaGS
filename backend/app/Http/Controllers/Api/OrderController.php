@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use DB;
@@ -14,7 +15,7 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with(['items.product', 'user', 'payment']);
+        $query = Order::with(['items.product', 'user', 'payment', 'deliveryAddress']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -28,7 +29,7 @@ class OrderController extends Controller
 
     public function myOrders(Request $request)
     {
-        $query = Order::with(['items.product', 'payment'])
+        $query = Order::with(['items.product', 'payment', 'deliveryAddress'])
             ->where('user_id', auth()->id());
 
         if ($request->has('status')) {
@@ -47,19 +48,62 @@ class OrderController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:dinheiro,cartão de débito,cartão de crédito,pix',
             'customer_name' => 'nullable|string|max:255',
-            'customer_phone' => 'nullable|string|max:20'
+            'customer_phone' => 'nullable|string|max:20',
+            'delivery' => 'nullable|array',
+            'delivery.address' => 'nullable|string|max:255',
+            'delivery.number' => 'nullable|string|max:20',
+            'delivery.complement' => 'nullable|string|max:255',
+            'delivery.neighborhood' => 'nullable|string|max:255',
+            'delivery.city' => 'nullable|string|max:255',
+            'delivery.state' => 'nullable|string|max:2',
+            'delivery.zipcode' => 'nullable|string|max:10',
+            'delivery.phone' => 'nullable|string|max:20',
+            'delivery.instructions' => 'nullable|string|max:500'
         ]);
 
         try {
             DB::beginTransaction();
 
             // Criar pedido
-            $order = Order::create([
+            $orderData = [
                 'user_id' => auth()->id(),
                 'order_number' => date('Ymd') . str_pad(Order::count() + 1, 4, '0', STR_PAD_LEFT),
                 'status' => 'pending',
                 'total' => 0 // Será calculado depois
-            ]);
+            ];
+
+            // Criar ou usar endereço
+            $deliveryAddressId = null;
+            if ($request->has('delivery') && is_array($request->delivery)) {
+                $delivery = $request->delivery;
+                
+                // Se é um endereço salvo (tem ID)
+                if (isset($delivery['address_id']) && $delivery['address_id']) {
+                    $deliveryAddressId = $delivery['address_id'];
+                } else {
+                    // Criar novo endereço
+                    $address = Address::create([
+                        'user_id' => auth()->id(),
+                        'name' => $delivery['name'] ?? 'Endereço de Entrega',
+                        'street' => $delivery['address'] ?? '',
+                        'number' => $delivery['number'] ?? '',
+                        'complement' => $delivery['complement'] ?? null,
+                        'neighborhood' => $delivery['neighborhood'] ?? '',
+                        'city' => $delivery['city'] ?? '',
+                        'state' => $delivery['state'] ?? '',
+                        'zipcode' => $delivery['zipcode'] ?? '',
+                        'notes' => $delivery['instructions'] ?? null,
+                        'is_default' => false,
+                        'is_active' => true
+                    ]);
+                    $deliveryAddressId = $address->id;
+                }
+                
+                $orderData['delivery_address_id'] = $deliveryAddressId;
+                $orderData['delivery_notes'] = $delivery['instructions'] ?? null;
+            }
+
+            $order = Order::create($orderData);
 
             $total = 0;
 
@@ -121,7 +165,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        return response()->json($order->load(['items.product', 'user', 'payment']));
+        return response()->json($order->load(['items.product', 'user', 'payment', 'deliveryAddress']));
     }
 
     public function updateStatus(Request $request, Order $order)

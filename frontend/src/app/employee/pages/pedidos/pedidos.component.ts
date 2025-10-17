@@ -11,7 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 
 import { OrderService, Order, OrderStatus } from '../../services/order.service';
 import { PrintService } from '../../../core/services/print.service';
@@ -41,9 +41,11 @@ import { OrderDetailsDialogComponent } from './dialogs/order-details-dialog.comp
 export class PedidosComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   filteredOrders: Order[] = [];
-  displayedColumns = ['id', 'created_at', 'customer', 'items', 'total', 'status', 'actions'];
+  displayedColumns = ['id', 'created_at', 'customer', 'address', 'items', 'total', 'status', 'actions'];
   loading = true;
   selectedStatus: OrderStatus | 'all' = 'pending';
+  lastOrderCount = 0;
+  hasNewOrders = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -54,17 +56,11 @@ export class PedidosComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Inscrever-se no observable de pedidos
-    this.orderService.orders$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((orders: Order[]) => {
-      this.orders = orders;
-      this.filterOrders();
-      this.loading = false;
-    });
-
-    // Carregar pedidos iniciais
-    this.loadOrders();
+    // Carregar todos os pedidos uma única vez
+    this.loadAllOrders();
+    
+    // Configurar verificação periódica de novos pedidos
+    this.setupOrderNotifications();
   }
 
   ngOnDestroy(): void {
@@ -72,11 +68,59 @@ export class PedidosComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadOrders(): void {
+  setupOrderNotifications(): void {
+    // Verificar novos pedidos a cada 10 segundos
+    interval(10000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.checkForNewOrders();
+      });
+  }
+
+  checkForNewOrders(): void {
+    this.orderService.fetchOrders()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (newOrders: Order[]) => {
+          const currentOrderCount = newOrders.length;
+          
+          if (this.lastOrderCount > 0 && currentOrderCount > this.lastOrderCount) {
+            const newOrderCount = currentOrderCount - this.lastOrderCount;
+            this.hasNewOrders = true;
+            
+            // Mostrar notificação
+            this.snackBar.open(
+              `🎉 ${newOrderCount} novo${newOrderCount > 1 ? 's' : ''} pedido${newOrderCount > 1 ? 's' : ''} recebido${newOrderCount > 1 ? 's' : ''}!`,
+              'Ver Pedidos',
+              {
+                duration: 5000,
+                panelClass: ['success-snackbar']
+              }
+            );
+            
+            // Atualizar dados locais
+            this.orders = newOrders;
+            this.filterOrders();
+          }
+          
+          this.lastOrderCount = currentOrderCount;
+        },
+        error: (error: any) => {
+          console.error('Erro ao verificar novos pedidos:', error);
+        }
+      });
+  }
+
+  loadAllOrders(): void {
     this.loading = true;
-    const filter = this.selectedStatus === 'all' ? undefined : { status: this.selectedStatus };
     
-    this.orderService.fetchOrders(filter).subscribe({
+    // Carregar todos os pedidos sem filtro
+    this.orderService.fetchOrders().subscribe({
+      next: (orders: Order[]) => {
+        this.orders = orders;
+        this.filterOrders();
+        this.loading = false;
+      },
       error: (error: Error) => {
         console.error('Erro ao carregar pedidos:', error);
         this.snackBar.open('Erro ao carregar pedidos', 'Fechar', { duration: 3000 });
@@ -93,7 +137,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
   onStatusFilterChange(status: OrderStatus | 'all'): void {
     this.selectedStatus = status;
-    this.filterOrders();
+    this.filterOrders(); // Filtro local, sem nova requisição
   }
 
   showDetails(order: Order): void {
@@ -119,7 +163,13 @@ export class PedidosComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe((newStatus?: OrderStatus) => {
       if (newStatus) {
         this.orderService.updateOrderStatus(order.id, newStatus).subscribe({
-          next: () => {
+          next: (updatedOrder) => {
+            // Atualizar o pedido na lista local
+            const index = this.orders.findIndex(o => o.id === order.id);
+            if (index !== -1) {
+              this.orders[index] = updatedOrder;
+              this.filterOrders(); // Re-filtrar para atualizar a exibição
+            }
             this.snackBar.open('Status atualizado com sucesso', 'Fechar', { duration: 3000 });
           },
           error: (error: Error) => {

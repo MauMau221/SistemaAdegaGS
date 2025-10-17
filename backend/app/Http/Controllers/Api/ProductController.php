@@ -10,7 +10,8 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with('category')
+            ->where('is_active', true);
 
         // Filtrar por categoria
         if ($request->has('category_id')) {
@@ -48,7 +49,9 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with('category')
+            ->where('is_active', true)
+            ->findOrFail($id);
         return response()->json($product);
     }
 }

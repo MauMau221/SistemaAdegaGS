@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,14 +9,22 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrderService } from '../../../core/services/order.service';
 import { CepService } from '../../../core/services/cep.service';
+import { AddressService, Address } from '../../../core/services/address.service';
 import { CartItem } from '../../../core/models/cart.model';
 import { User } from '../../../core/models/auth.model';
+import { Product } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-checkout',
@@ -27,13 +35,18 @@ import { User } from '../../../core/models/auth.model';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
+    FormsModule,
     MatStepperModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatRadioModule,
     MatProgressSpinnerModule,
-    MatIconModule
+    MatIconModule,
+    MatCardModule,
+    MatChipsModule,
+    MatDividerModule,
+    MatSnackBarModule
   ]
 })
 export class CheckoutComponent implements OnInit {
@@ -44,6 +57,12 @@ export class CheckoutComponent implements OnInit {
   user$!: Observable<User | null>;
   loading = false;
   error: string | null = null;
+  
+  // Endereços
+  addresses: Address[] = [];
+  selectedAddressId: number | null = null;
+  useSavedAddress = false;
+  loadingAddresses = false;
 
   constructor(
     private fb: FormBuilder,
@@ -51,7 +70,10 @@ export class CheckoutComponent implements OnInit {
     private authService: AuthService,
     private orderService: OrderService,
     private cepService: CepService,
-    private router: Router
+    private addressService: AddressService,
+    private snackBar: MatSnackBar,
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.deliveryForm = this.fb.group({
       address: ['', Validators.required],
@@ -87,6 +109,120 @@ export class CheckoutComponent implements OnInit {
         });
       }
     });
+
+    // Carregar endereços salvos
+    this.loadAddresses();
+  }
+
+  loadAddresses(): void {
+    this.loadingAddresses = true;
+    this.addressService.getAddresses().subscribe({
+      next: (addresses) => {
+        this.addresses = addresses;
+        this.loadingAddresses = false;
+        
+        // Se há endereços, usar endereço salvo por padrão
+        if (addresses.length > 0) {
+          this.useSavedAddress = true;
+          const defaultAddress = addresses.find(addr => addr.is_default);
+          if (defaultAddress) {
+            this.selectAddress(defaultAddress.id);
+          } else {
+            // Se não há endereço padrão, selecionar o primeiro
+            this.selectAddress(addresses[0].id);
+          }
+        } else {
+          // Se não há endereços, usar novo endereço
+          this.useSavedAddress = false;
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao carregar endereços:', error);
+        this.loadingAddresses = false;
+        this.useSavedAddress = false;
+      }
+    });
+  }
+
+  selectAddress(addressId: number): void {
+    this.selectedAddressId = addressId;
+    this.useSavedAddress = true;
+    
+    const address = this.addresses.find(addr => addr.id === addressId);
+    if (address) {
+      this.deliveryForm.patchValue({
+        zipcode: address.zipcode,
+        address: address.street,
+        number: address.number,
+        complement: address.complement,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        instructions: address.notes
+      });
+    }
+  }
+
+  onAddressOptionChange(event: any): void {
+    const selectedValue = event.value;
+    console.log('Address option changed:', selectedValue);
+    
+    this.useSavedAddress = selectedValue;
+    
+    if (this.useSavedAddress) {
+      // Se selecionou usar endereço salvo, garantir que um endereço está selecionado
+      if (this.addresses.length > 0 && !this.selectedAddressId) {
+        const defaultAddress = this.addresses.find(addr => addr.is_default);
+        if (defaultAddress) {
+          this.selectAddress(defaultAddress.id);
+        } else {
+          this.selectAddress(this.addresses[0].id);
+        }
+      }
+    } else {
+      // Se selecionou usar novo endereço
+      this.useNewAddress();
+    }
+    
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
+  }
+
+  useNewAddress(): void {
+    console.log('Using new address');
+    this.useSavedAddress = false;
+    this.selectedAddressId = null;
+    this.deliveryForm.reset();
+    
+    // Manter o telefone se já estiver preenchido
+    const phone = this.deliveryForm.get('phone')?.value;
+    this.deliveryForm.patchValue({ phone });
+    
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
+    
+    console.log('New address setup complete:', {
+      useSavedAddress: this.useSavedAddress,
+      selectedAddressId: this.selectedAddressId,
+      formValue: this.deliveryForm.value
+    });
+  }
+
+  isDeliveryFormValid(): boolean {
+    console.log('Validating delivery form:', {
+      useSavedAddress: this.useSavedAddress,
+      selectedAddressId: this.selectedAddressId,
+      formValid: this.deliveryForm.valid,
+      formValue: this.deliveryForm.value
+    });
+    
+    if (this.useSavedAddress) {
+      // Se está usando endereço salvo, verificar se um endereço foi selecionado
+      return this.selectedAddressId !== null;
+    } else {
+      // Se está usando novo endereço, verificar se o formulário está válido
+      return this.deliveryForm.valid;
+    }
   }
 
   formatPhone(event: any): void {
@@ -145,7 +281,14 @@ export class CheckoutComponent implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
-    if (this.deliveryForm.invalid || this.paymentForm.invalid) {
+    console.log('Submitting order:', {
+      useSavedAddress: this.useSavedAddress,
+      selectedAddressId: this.selectedAddressId,
+      deliveryFormValid: this.deliveryForm.valid,
+      paymentFormValid: this.paymentForm.valid
+    });
+
+    if (!this.isDeliveryFormValid() || this.paymentForm.invalid) {
       this.error = 'Por favor, preencha todos os campos obrigatórios';
       return;
     }
@@ -175,12 +318,28 @@ export class CheckoutComponent implements OnInit {
       };
 
       // Preparar dados do pedido
+      let deliveryData;
+      if (this.useSavedAddress && this.selectedAddressId) {
+        // Usar endereço salvo
+        deliveryData = {
+          address_id: this.selectedAddressId,
+          phone: this.deliveryForm.value.phone,
+          instructions: ''
+        };
+      } else {
+        // Usar novo endereço
+        deliveryData = {
+          name: 'Endereço de Entrega',
+          ...this.deliveryForm.value
+        };
+      }
+
       const orderData = {
         type: 'online',
-        delivery: this.deliveryForm.value,
+        delivery: deliveryData,
         payment_method: paymentMethodMap[this.paymentForm.value.method] || 'pix',
-        customer_name: this.deliveryForm.value.address,
-        customer_phone: this.deliveryForm.value.phone,
+        customer_name: deliveryData.address,
+        customer_phone: deliveryData.phone,
         items: items.map(item => ({
           product_id: item.product.id,
           quantity: item.quantity
@@ -227,5 +386,17 @@ export class CheckoutComponent implements OnInit {
       this.error = 'Erro ao processar pedido. Tente novamente.';
       this.loading = false;
     }
+  }
+
+  getImageUrl(product: Product): string {
+    const imageUrl = product.image_url;
+    if (!imageUrl) return 'assets/images/no-image.png';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}?v=${encodeURIComponent(product.updated_at || '')}`;
+    }
+    return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
   }
 }

@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\StockMovement;
+use App\Models\Address;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -44,6 +45,55 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
                 'phone' => "11 9999-999{$i}"
             ]);
+        }
+
+        // Criar alguns endereços de exemplo para os clientes
+        $addresses = [
+            [
+                'user_id' => $customers[0]->id,
+                'name' => 'Casa',
+                'street' => 'Rua das Flores',
+                'number' => '123',
+                'complement' => 'Apto 45',
+                'neighborhood' => 'Centro',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+                'zipcode' => '01234-567',
+                'notes' => 'Portão azul',
+                'is_default' => true,
+                'is_active' => true
+            ],
+            [
+                'user_id' => $customers[0]->id,
+                'name' => 'Trabalho',
+                'street' => 'Avenida Paulista',
+                'number' => '1000',
+                'complement' => 'Sala 501',
+                'neighborhood' => 'Bela Vista',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+                'zipcode' => '01310-100',
+                'notes' => 'Recepção no térreo',
+                'is_default' => false,
+                'is_active' => true
+            ],
+            [
+                'user_id' => $customers[1]->id,
+                'name' => 'Casa',
+                'street' => 'Rua da Paz',
+                'number' => '456',
+                'neighborhood' => 'Vila Madalena',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+                'zipcode' => '05435-000',
+                'notes' => 'Casa com jardim',
+                'is_default' => true,
+                'is_active' => true
+            ]
+        ];
+
+        foreach ($addresses as $addressData) {
+            Address::create($addressData);
         }
 
         // Criar categorias
@@ -346,6 +396,23 @@ class DatabaseSeeder extends Seeder
             $status = $statuses[array_rand($statuses)];
             $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
             
+            // Buscar endereço do cliente (ou criar um se não existir)
+            $customerAddress = Address::where('user_id', $customer->id)->first();
+            if (!$customerAddress) {
+                $customerAddress = Address::create([
+                    'user_id' => $customer->id,
+                    'name' => 'Endereço Principal',
+                    'street' => 'Rua Exemplo',
+                    'number' => '123',
+                    'neighborhood' => 'Centro',
+                    'city' => 'São Paulo',
+                    'state' => 'SP',
+                    'zipcode' => '01234-567',
+                    'is_default' => true,
+                    'is_active' => true
+                ]);
+            }
+            
             // Criar pedido
             $orderNumber = date('Ymd') . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
             $order = Order::create([
@@ -353,6 +420,8 @@ class DatabaseSeeder extends Seeder
                 'order_number' => $orderNumber,
                 'status' => $status,
                 'total' => 0, // Será calculado após adicionar os itens
+                'delivery_address_id' => $customerAddress->id,
+                'delivery_notes' => 'Entrega padrão'
             ]);
 
             // Adicionar 1-5 itens aleatórios ao pedido

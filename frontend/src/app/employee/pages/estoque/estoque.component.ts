@@ -14,6 +14,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
 import { Subject, takeUntil } from 'rxjs';
 
 import { StockService, StockSummary, StockResponse } from '../../../core/services/stock.service';
@@ -40,20 +41,24 @@ import { StockMovementDialogComponent } from '../../components/stock-movement-di
     MatChipsModule,
     MatBadgeModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSelectModule
   ]
 })
 export class EstoqueComponent implements OnInit, OnDestroy {
-  displayedColumns = ['name', 'category', 'stock_quantity', 'price', 'actions'];
+  displayedColumns = ['name', 'category', 'stock_quantity', 'min_stock', 'price', 'cost_price', 'actions'];
   products: Product[] = [];
   summary: StockSummary | null = null;
   loading = true;
   searchTerm = '';
   showLowStock = false;
+  selectedCategory = '';
+  stockFilter = 'all';
+  categories: any[] = [];
 
   // Paginação
   totalItems = 0;
-  pageSize = 10;
+  pageSize = 15;
   currentPage = 0;
 
   private destroy$ = new Subject<void>();
@@ -66,6 +71,7 @@ export class EstoqueComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadSummary();
+    this.loadCategories();
     this.loadProducts();
   }
 
@@ -86,19 +92,52 @@ export class EstoqueComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadCategories(): void {
+    // Carregar categorias do backend
+    this.stockService.getCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (categories) => {
+          this.categories = categories;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar categorias:', error);
+          // Fallback para categorias mockadas
+          this.categories = [
+            { id: 1, name: 'Pack Cervejas Lata' },
+            { id: 2, name: 'Pack Long Neck' },
+            { id: 3, name: 'Bebidas Ice' },
+            { id: 4, name: 'Energéticos' },
+            { id: 5, name: 'Bebidas Quentes' },
+            { id: 6, name: 'Refrigerantes' },
+            { id: 7, name: 'Sucos' }
+          ];
+        }
+      });
+  }
+
   loadProducts(): void {
     this.loading = true;
-    const params = {
+    const params: any = {
       search: this.searchTerm,
       page: this.currentPage + 1,
       per_page: this.pageSize,
-      low_stock: this.showLowStock
+      category: this.selectedCategory,
+      stock_filter: this.stockFilter
     };
+
+    // Só adicionar low_stock se for true
+    if (this.showLowStock) {
+      params.low_stock = true;
+    }
+
+    console.log('Parâmetros enviados:', params);
 
     this.stockService.getStock(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: StockResponse) => {
+          console.log('Resposta recebida:', response);
           this.products = response.data;
           this.totalItems = response.total;
           this.loading = false;
@@ -126,6 +165,22 @@ export class EstoqueComponent implements OnInit, OnDestroy {
     this.showLowStock = !this.showLowStock;
     this.currentPage = 0;
     this.loadProducts();
+  }
+
+  onCategoryChange(): void {
+    this.currentPage = 0;
+    this.loadProducts();
+  }
+
+  onStockFilterChange(): void {
+    this.currentPage = 0;
+    this.loadProducts();
+  }
+
+  refreshData(): void {
+    this.loadSummary();
+    this.loadProducts();
+    this.snackBar.open('Dados atualizados', 'Fechar', { duration: 2000 });
   }
 
   openStockMovement(product: Product): void {
@@ -164,5 +219,55 @@ export class EstoqueComponent implements OnInit, OnDestroy {
     if (quantity === 0) return '#f44336'; // Vermelho
     if (quantity <= minQuantity) return '#ff9800'; // Laranja
     return '#4caf50'; // Verde
+  }
+
+  viewProductHistory(product: Product): void {
+    // Implementar diálogo de histórico de movimentações
+    this.stockService.getProductMovements(product.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (movements) => {
+          // Aqui você pode abrir um diálogo para mostrar o histórico
+          console.log('Histórico de movimentações:', movements);
+          this.snackBar.open(`Histórico carregado: ${movements.length} movimentações`, 'Fechar', { duration: 3000 });
+        },
+        error: (error) => {
+          console.error('Erro ao carregar histórico:', error);
+          this.snackBar.open('Erro ao carregar histórico', 'Fechar', { duration: 3000 });
+        }
+      });
+  }
+
+  adjustStock(product: Product): void {
+    // Implementar diálogo de ajuste rápido de estoque
+    const newQuantity = prompt(`Ajuste rápido para ${product.name}:\nEstoque atual: ${product.current_stock ?? product.stock_quantity}\nNova quantidade:`);
+    
+    if (newQuantity !== null && !isNaN(Number(newQuantity))) {
+      const quantity = Number(newQuantity);
+      const currentStock = product.current_stock ?? product.stock_quantity;
+      const difference = quantity - currentStock;
+      
+      if (difference !== 0) {
+        const type = difference > 0 ? 'in' : 'out';
+        const reason = `Ajuste rápido - ${difference > 0 ? 'Entrada' : 'Saída'} de ${Math.abs(difference)} unidades`;
+        
+        this.stockService.updateStock(product.id, {
+          type: type,
+          quantity: Math.abs(difference),
+          reason: reason
+        }).pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Estoque ajustado com sucesso', 'Fechar', { duration: 3000 });
+            this.loadSummary();
+            this.loadProducts();
+          },
+          error: (error) => {
+            console.error('Erro ao ajustar estoque:', error);
+            this.snackBar.open('Erro ao ajustar estoque', 'Fechar', { duration: 3000 });
+          }
+        });
+      }
+    }
   }
 }

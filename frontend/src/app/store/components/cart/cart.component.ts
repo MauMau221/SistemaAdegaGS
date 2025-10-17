@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../../core/services/cart.service';
 import { CartItem } from '../../../core/models/cart.model';
+import { Product } from '../../../core/models/product.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-cart',
@@ -41,5 +43,17 @@ export class CartComponent {
 
   continueShopping(): void {
     this.router.navigate(['/loja']);
+  }
+
+  getImageUrl(product: Product): string {
+    const imageUrl = product.image_url;
+    if (!imageUrl) return 'assets/images/no-image.png';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
+    if (imageUrl.startsWith('/storage/') || imageUrl.startsWith('storage/')) {
+      const base = environment.apiUrl.replace(/\/api$/, '');
+      const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      return `${base}${path}?v=${encodeURIComponent(product.updated_at || '')}`;
+    }
+    return `${imageUrl}?v=${encodeURIComponent(product.updated_at || '')}`;
   }
 }

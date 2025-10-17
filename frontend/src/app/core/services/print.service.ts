@@ -148,7 +148,7 @@ export class PrintService {
           </div>
 
           <div class="payment-info">
-            <p><strong>Forma de Pagamento:</strong> ${order.payment?.payment_method || 'Não informado'}</p>
+            <p><strong>Forma de Pagamento:</strong> ${this.getPaymentMethod(order)}</p>
           </div>
 
           <div class="footer">
@@ -167,5 +167,36 @@ export class PrintService {
       // Fechar a janela após a impressão (opcional, depende da preferência do usuário)
       // printWindow.close();
     };
+  }
+
+  private getPaymentMethod(order: Order): string {
+    // Primeiro tenta o payment_method direto do order
+    if (order.payment_method) {
+      return this.formatPaymentMethod(order.payment_method);
+    }
+    
+    // Depois tenta o payment_method do objeto payment (pode ser array ou objeto)
+    if (order.payment) {
+      if (Array.isArray(order.payment) && order.payment.length > 0) {
+        // Se é array, pega o primeiro payment
+        return this.formatPaymentMethod(order.payment[0].payment_method);
+      } else if (!Array.isArray(order.payment)) {
+        // Se é objeto único
+        return this.formatPaymentMethod(order.payment.payment_method);
+      }
+    }
+    
+    return 'Não informado';
+  }
+
+  private formatPaymentMethod(method: string): string {
+    const methods: { [key: string]: string } = {
+      'dinheiro': 'Dinheiro',
+      'cartao': 'Cartão',
+      'pix': 'PIX',
+      'credito': 'Cartão de Crédito',
+      'debito': 'Cartão de Débito'
+    };
+    return methods[method] || method;
   }
 }

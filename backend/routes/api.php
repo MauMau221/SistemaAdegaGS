@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\AddressController;
 
 // Rotas públicas
 Route::post('/register', [AuthController::class, 'register']);
@@ -96,6 +97,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('customer')->group(function () {
         Route::get('/my-orders', [OrderController::class, 'myOrders']);
         Route::post('/orders', [OrderController::class, 'store']);
+        
+        // Endereços
+        Route::get('/addresses', [AddressController::class, 'index']);
+        Route::post('/addresses', [AddressController::class, 'store']);
+        Route::get('/addresses/{address}', [AddressController::class, 'show']);
+        Route::put('/addresses/{address}', [AddressController::class, 'update']);
+        Route::delete('/addresses/{address}', [AddressController::class, 'destroy']);
+        Route::patch('/addresses/{address}/default', [AddressController::class, 'setDefault']);
     });
 
     // Rotas de funcionário e admin
