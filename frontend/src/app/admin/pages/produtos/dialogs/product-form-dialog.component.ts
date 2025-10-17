@@ -143,13 +143,13 @@ import { environment } from '../../../../../environments/environment';
               <mat-label>Quantidade em Estoque</mat-label>
               <input matInput 
                      type="number" 
-                     formControlName="stock_quantity" 
+                     formControlName="current_stock" 
                      required
                      min="0">
-              <mat-error *ngIf="productForm.get('stock_quantity')?.hasError('required')">
+              <mat-error *ngIf="productForm.get('current_stock')?.hasError('required')">
                 Quantidade é obrigatória
               </mat-error>
-              <mat-error *ngIf="productForm.get('stock_quantity')?.hasError('min')">
+              <mat-error *ngIf="productForm.get('current_stock')?.hasError('min')">
                 Quantidade não pode ser negativa
               </mat-error>
             </mat-form-field>
@@ -158,13 +158,13 @@ import { environment } from '../../../../../environments/environment';
               <mat-label>Estoque Mínimo</mat-label>
               <input matInput 
                      type="number" 
-                     formControlName="min_stock_quantity" 
+                     formControlName="min_stock" 
                      required
                      min="0">
-              <mat-error *ngIf="productForm.get('min_stock_quantity')?.hasError('required')">
+              <mat-error *ngIf="productForm.get('min_stock')?.hasError('required')">
                 Estoque mínimo é obrigatório
               </mat-error>
-              <mat-error *ngIf="productForm.get('min_stock_quantity')?.hasError('min')">
+              <mat-error *ngIf="productForm.get('min_stock')?.hasError('min')">
                 Estoque mínimo não pode ser negativo
               </mat-error>
             </mat-form-field>
@@ -307,8 +307,8 @@ export class ProductFormDialogComponent implements OnInit {
       sku: ['', Validators.required],
       barcode: [''],
       price: ['', [Validators.required, Validators.min(0)]],
-      stock_quantity: ['', [Validators.required, Validators.min(0)]],
-      min_stock_quantity: ['', [Validators.required, Validators.min(0)]],
+      current_stock: ['', [Validators.required, Validators.min(0)]],
+      min_stock: ['', [Validators.required, Validators.min(0)]],
       is_active: [true]
     });
 

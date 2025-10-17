@@ -17,9 +17,7 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->decimal('cost_price', 10, 2);
             
-            // Campos de estoque (mantendo compatibilidade)
-            $table->integer('stock_quantity')->default(0);
-            $table->integer('min_stock_quantity')->default(1);
+            // Campos de estoque (coluna única)
             $table->integer('current_stock')->default(0);
             $table->integer('min_stock')->default(5);
             

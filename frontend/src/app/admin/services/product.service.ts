@@ -16,8 +16,8 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  stock_quantity: number;
-  min_stock_quantity: number;
+  current_stock: number;
+  min_stock: number;
   sku: string;
   barcode?: string;
   category_id: number;
@@ -35,8 +35,8 @@ export interface CreateProductDTO {
   name: string;
   description: string;
   price: number;
-  stock_quantity: number;
-  min_stock_quantity: number;
+  current_stock: number;
+  min_stock: number;
   sku: string;
   barcode?: string;
   category_id: number;

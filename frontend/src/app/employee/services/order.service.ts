@@ -18,7 +18,7 @@ export type PaymentMethod = 'dinheiro' | 'cartão de débito' | 'cartão de cré
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
 export interface Product extends CoreProduct {
-  stock_quantity: number;
+  current_stock: number;
 }
 
 export interface OrderItem {

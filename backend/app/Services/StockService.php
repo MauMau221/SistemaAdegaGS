@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class StockService
 {
@@ -24,7 +25,7 @@ class StockService
             ->with(['category'])
             // Filtro de baixo estoque apenas quando valor truthy
             ->when(!empty($filters['low_stock']), function ($query) {
-                $query->whereRaw('COALESCE(current_stock, stock_quantity) <= COALESCE(min_stock, min_stock_quantity)');
+                $query->whereRaw('current_stock <= min_stock');
             })
             // Filtro por categoria
             ->when(isset($filters['category']) && $filters['category'] !== '', function ($query) use ($filters) {
@@ -34,13 +35,13 @@ class StockService
             ->when(isset($filters['stock_filter']) && $filters['stock_filter'] !== 'all', function ($query) use ($filters) {
                 switch ($filters['stock_filter']) {
                     case 'low':
-                        $query->whereRaw('COALESCE(current_stock, stock_quantity) <= COALESCE(min_stock, min_stock_quantity)');
+                        $query->whereRaw('current_stock <= min_stock');
                         break;
                     case 'out':
-                        $query->whereRaw('COALESCE(current_stock, stock_quantity) = 0');
+                        $query->whereRaw('current_stock = 0');
                         break;
                     case 'normal':
-                        $query->whereRaw('COALESCE(current_stock, stock_quantity) > COALESCE(min_stock, min_stock_quantity)');
+                        $query->whereRaw('current_stock > min_stock');
                         break;
                 }
             })
@@ -53,8 +54,8 @@ class StockService
                         ->orWhere('barcode', 'like', "%{$search}%");
                 });
             })
-            // Ordenar por estoque ascendente (considerando current_stock quando existir)
-            ->orderByRaw('COALESCE(current_stock, stock_quantity) ASC');
+            // Ordenar por estoque ascendente
+            ->orderByRaw('current_stock ASC');
 
         return $query->paginate($perPage);
     }
@@ -68,6 +69,7 @@ class StockService
     ): Product {
         $product = Product::findOrFail($productId);
 
+        // Validar apenas current_stock
         if ($type === 'saida' && $quantity > $product->current_stock) {
             throw new \Exception('Quantidade insuficiente em estoque');
         }
@@ -98,7 +100,7 @@ class StockService
             'total_products' => Product::count(),
             'low_stock_count' => Product::whereRaw('current_stock <= min_stock')->count(),
             'out_of_stock_count' => Product::where('current_stock', 0)->count(),
-            'total_stock_value' => Product::sum(\DB::raw('current_stock * cost_price'))
+            'total_stock_value' => Product::sum(DB::raw('current_stock * cost_price'))
         ];
     }
 }

@@ -256,7 +256,7 @@ class CategoryController extends Controller
             'active_products_count' => $category->products()->where('is_active', true)->count(),
             'total_value' => $category->products()->sum('price'),
             'low_stock_count' => $category->products()
-                ->whereColumn('stock_quantity', '<=', 'min_stock_quantity')
+                ->whereColumn('current_stock', '<=', 'min_stock')
                 ->count()
         ];
 

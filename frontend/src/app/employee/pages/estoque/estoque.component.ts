@@ -46,7 +46,7 @@ import { StockMovementDialogComponent } from '../../components/stock-movement-di
   ]
 })
 export class EstoqueComponent implements OnInit, OnDestroy {
-  displayedColumns = ['name', 'category', 'stock_quantity', 'min_stock', 'price', 'cost_price', 'actions'];
+  displayedColumns = ['name', 'category', 'current_stock', 'min_stock', 'price', 'cost_price', 'actions'];
   products: Product[] = [];
   summary: StockSummary | null = null;
   loading = true;
@@ -240,11 +240,11 @@ export class EstoqueComponent implements OnInit, OnDestroy {
 
   adjustStock(product: Product): void {
     // Implementar diálogo de ajuste rápido de estoque
-    const newQuantity = prompt(`Ajuste rápido para ${product.name}:\nEstoque atual: ${product.current_stock ?? product.stock_quantity}\nNova quantidade:`);
+    const newQuantity = prompt(`Ajuste rápido para ${product.name}:\nEstoque atual: ${product.current_stock}\nNova quantidade:`);
     
     if (newQuantity !== null && !isNaN(Number(newQuantity))) {
       const quantity = Number(newQuantity);
-      const currentStock = product.current_stock ?? product.stock_quantity;
+      const currentStock = product.current_stock;
       const difference = quantity - currentStock;
       
       if (difference !== 0) {

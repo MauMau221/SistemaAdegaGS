@@ -45,12 +45,15 @@
               <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
 
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectProduct($event.option.value)">
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectProduct($event.option.value)">
               <mat-option *ngFor="let product of searchResults" [value]="product">
                 <div class="product-option">
                   <span class="name">{{product.name}}</span>
                   <span class="price">{{formatCurrency(product.price)}}</span>
-                  <span class="stock">Estoque: {{product.current_stock}}</span>
+                  <span class="stock" [class.out-of-stock]="product.current_stock === 0">
+                    Estoque: {{product.current_stock}}
+                    <span *ngIf="product.current_stock === 0">(Sem estoque)</span>
+                  </span>
                 </div>
               </mat-option>
             </mat-autocomplete>
@@ -70,14 +73,19 @@
                 <span class="quantity">{{quantity}}</span>
                 <button mat-icon-button 
                         (click)="quantity = quantity + 1"
-                        [disabled]="quantity >= selectedProduct.current_stock">
+                        [disabled]="selectedProduct.current_stock === 0 || quantity >= selectedProduct.current_stock">
                   <mat-icon>add</mat-icon>
                 </button>
+              </div>
+              <div *ngIf="selectedProduct.current_stock === 0" class="stock-warning">
+                <mat-icon color="warn">warning</mat-icon>
+                <span>Produto sem estoque. Não é possível adicionar ao carrinho.</span>
               </div>
               <button mat-raised-button 
                       color="primary" 
                       (click)="addToCart()"
-                      class="add-button">
+                      class="add-button"
+                      [disabled]="selectedProduct.current_stock === 0">
                 <mat-icon>add_shopping_cart</mat-icon>
                 Adicionar ao Carrinho
               </button>
@@ -112,7 +120,7 @@
                     <span class="quantity">{{item.quantity}}</span>
                     <button mat-icon-button 
                             (click)="updateQuantity(i, 1)"
-                            [disabled]="item.quantity >= item.product.current_stock">
+                            [disabled]="item.product.current_stock === 0 || item.quantity >= item.product.current_stock">
                       <mat-icon>add</mat-icon>
                     </button>
                   </div>

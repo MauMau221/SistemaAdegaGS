@@ -20,6 +20,7 @@ import { CashService } from '../../services/cash.service';
 import { StockService } from '../../../core/services/stock.service';
 import { OrderService, PaymentMethod, CreateOrderRequest, CreateOrderResponse, Product } from '../../services/order.service';
 import { CashStatus, CashTransaction } from '../../models/cash.model';
+import { SettingsService, SystemSettings } from '../../../admin/services/settings.service';
 import { OpenCashDialogComponent } from './dialogs/open-cash-dialog.component';
 import { PrintConfirmationDialogComponent } from './dialogs/print-confirmation-dialog.component';
 import { CloseCashDialogComponent } from './dialogs/close-cash-dialog.component';
@@ -79,6 +80,8 @@ export class CaixaComponent implements OnInit, OnDestroy {
   
   // Controle de visibilidade do valor do caixa
   showCashValue = false;
+  // Settings
+  settings: SystemSettings | null = null;
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
@@ -88,7 +91,8 @@ export class CaixaComponent implements OnInit, OnDestroy {
     private stockService: StockService,
     private orderService: OrderService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private settingsService: SettingsService
   ) {
     // Configurar busca com debounce
     this.searchSubject.pipe(
@@ -106,6 +110,11 @@ export class CaixaComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCashStatus();
+    // Carregar configurações para habilitar métodos de pagamento
+    this.settingsService.getSettings().subscribe({
+      next: (s) => this.settings = s,
+      error: () => { /* fallback silencioso */ }
+    });
   }
 
   ngOnDestroy(): void {
@@ -168,7 +177,8 @@ export class CaixaComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: response => {
-          this.searchResults = response.data.filter(p => p.stock_quantity > 0);
+          // Exibir também produtos com estoque zerado para sinalização visual
+          this.searchResults = response.data;
         },
         error: error => {
           console.error('Erro ao buscar produtos:', error);
@@ -187,18 +197,24 @@ export class CaixaComponent implements OnInit, OnDestroy {
   addToCart(): void {
     if (!this.selectedProduct || this.quantity < 1) return;
 
+    // Bloquear inclusão quando o produto não possui estoque
+    if (this.selectedProduct.current_stock <= 0) {
+      this.snackBar.open('Produto sem estoque disponível', 'Fechar', { duration: 3000 });
+      return;
+    }
+
     const existingItem = this.cartItems.find(item => item.product.id === this.selectedProduct!.id);
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + this.quantity;
-      if (newQuantity > this.selectedProduct.stock_quantity) {
+      if (newQuantity > this.selectedProduct.current_stock) {
         this.snackBar.open('Quantidade excede o estoque disponível', 'Fechar', { duration: 3000 });
         return;
       }
       existingItem.quantity = newQuantity;
       existingItem.subtotal = newQuantity * this.selectedProduct.price;
     } else {
-      if (this.quantity > this.selectedProduct.stock_quantity) {
+      if (this.quantity > this.selectedProduct.current_stock) {
         this.snackBar.open('Quantidade excede o estoque disponível', 'Fechar', { duration: 3000 });
         return;
       }
@@ -223,7 +239,7 @@ export class CaixaComponent implements OnInit, OnDestroy {
     const item = this.cartItems[index];
     const newQuantity = item.quantity + change;
 
-    if (newQuantity < 1 || newQuantity > item.product.stock_quantity) {
+    if (newQuantity < 1 || newQuantity > item.product.current_stock) {
       return;
     }
 
@@ -263,6 +279,21 @@ export class CaixaComponent implements OnInit, OnDestroy {
   }
 
   finalizeSale(paymentMethod: PaymentMethod): void {
+    // Bloquear se método estiver desabilitado nas configurações
+    if (this.settings && Array.isArray(this.settings.accepted_payment_methods)) {
+      const map: Record<string, string> = {
+        'dinheiro': 'cash',
+        'pix': 'pix',
+        'cartão de débito': 'debit_card',
+        'cartão de crédito': 'credit_card'
+      };
+      const key = map[paymentMethod];
+      const pm = this.settings.accepted_payment_methods.find(m => m.method === key);
+      if (pm && pm.enabled === false) {
+        this.snackBar.open('Forma de pagamento desabilitada nas configurações', 'Fechar', { duration: 3000 });
+        return;
+      }
+    }
     if (!this.cartItems.length) {
       this.snackBar.open('Adicione produtos ao carrinho', 'Fechar', { duration: 3000 });
       return;
@@ -619,27 +650,26 @@ export class CaixaComponent implements OnInit, OnDestroy {
   private updateCashAmount(saleAmount: number, paymentMethod: PaymentMethod): void {
     if (!this.cashStatus) return;
 
+    // Garantir números válidos para evitar NaN
+    const saleAmountNum = Number(saleAmount) || 0;
     let cashChange = 0;
 
     switch (paymentMethod) {
       case 'dinheiro':
         // Para dinheiro: adiciona o valor recebido, mas subtrai o troco dado
-        const receivedAmount = this.receivedAmount || saleAmount;
-        const changeAmount = this.changeAmount || 0;
+        const receivedAmount = Number(this.receivedAmount || saleAmountNum) || 0;
+        const changeAmount = Number(this.changeAmount) || 0;
         cashChange = receivedAmount - changeAmount;
         break;
       case 'cartão de débito':
       case 'cartão de crédito':
       case 'pix':
         // Para cartão/PIX: o valor vai direto para o caixa
-        cashChange = saleAmount;
+        cashChange = saleAmountNum;
         break;
       default:
-        cashChange = saleAmount;
+        cashChange = saleAmountNum;
     }
-
-    // Atualizar o valor atual do caixa
-    this.cashStatus.current_amount += cashChange;
 
     // Criar transação no caixa
     this.cashService.addTransaction({
@@ -648,7 +678,11 @@ export class CaixaComponent implements OnInit, OnDestroy {
       description: `Venda - ${paymentMethod} - R$ ${this.formatCurrency(saleAmount)}`
     }).subscribe({
       next: () => {
-        console.log('Valor do caixa atualizado:', this.cashStatus?.current_amount);
+        // Recarregar status para refletir valor atualizado e evitar inconsistência do mock
+        this.cashService.getStatus().subscribe(status => {
+          this.cashStatus = status;
+          console.log('Valor do caixa atualizado:', this.cashStatus?.current_amount);
+        });
       },
       error: (error) => {
         console.error('Erro ao atualizar valor do caixa:', error);

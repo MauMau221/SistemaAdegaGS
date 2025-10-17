@@ -16,8 +16,6 @@ class Product extends Model
         'description',
         'price',
         'cost_price',
-        'stock_quantity',
-        'min_stock_quantity',
         'current_stock',
         'min_stock',
         'sku',
@@ -30,8 +28,6 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'cost_price' => 'decimal:2',
-        'stock_quantity' => 'integer',
-        'min_stock_quantity' => 'integer',
         'current_stock' => 'integer',
         'min_stock' => 'integer',
         'is_active' => 'boolean',
@@ -58,8 +54,8 @@ class Product extends Model
 
     public function getLowStockAttribute(): bool
     {
-        $currentStock = $this->current_stock ?? $this->stock_quantity;
-        $minStock = $this->min_stock ?? $this->min_stock_quantity;
+        $currentStock = $this->current_stock;
+        $minStock = $this->min_stock;
         return $currentStock <= $minStock;
     }
 
@@ -75,15 +71,17 @@ class Product extends Model
 
         $this->stockMovements()->save($movement);
 
-        // Usar current_stock se disponível, senão usar stock_quantity
-        $stockField = $this->getConnection()->getSchemaBuilder()->hasColumn($this->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
-
+        // Coluna única
         if ($type === 'entrada') {
-            $this->increment($stockField, $quantity);
+            $this->increment('current_stock', $quantity);
         } elseif ($type === 'saida') {
-            $this->decrement($stockField, $quantity);
+            $currentValue = (int) $this->current_stock;
+            if ($currentValue < $quantity) {
+                throw new \Exception('Quantidade insuficiente em estoque');
+            }
+            $this->decrement('current_stock', $quantity);
         } else { // ajuste
-            $this->update([$stockField => $quantity]);
+            $this->update(['current_stock' => $quantity]);
         }
     }
 }

@@ -9,7 +9,8 @@ use App\Models\Product;
 use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -22,7 +23,7 @@ class OrderController extends Controller
         }
 
         $orders = $query->latest()->get();
-        \Log::info('OrderController@index - Orders found: ' . $orders->count());
+        Log::info('OrderController@index - Orders found: ' . $orders->count());
 
         return response()->json($orders);
     }
@@ -111,7 +112,8 @@ class OrderController extends Controller
             foreach ($request->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 
-                $currentStock = $product->current_stock ?? $product->stock_quantity;
+                // Checar disponibilidade na coluna única
+                $currentStock = (int) $product->current_stock;
                 if ($currentStock < $item['quantity']) {
                     throw new \Exception("Produto {$product->name} não possui estoque suficiente");
                 }
@@ -125,9 +127,8 @@ class OrderController extends Controller
                     'subtotal' => $subtotal
                 ]);
 
-                // Atualizar estoque
-                $stockField = $product->getConnection()->getSchemaBuilder()->hasColumn($product->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
-                $product->decrement($stockField, $item['quantity']);
+                // Atualizar estoque na coluna única
+                $product->decrement('current_stock', $item['quantity']);
                 
                 // Registrar movimentação de estoque
                 $product->stockMovements()->create([
@@ -180,8 +181,8 @@ class OrderController extends Controller
         // Se o pedido for cancelado, estornar o estoque
         if ($request->status === 'cancelled') {
             foreach ($order->items as $item) {
-                $stockField = $item->product->getConnection()->getSchemaBuilder()->hasColumn($item->product->getTable(), 'current_stock') ? 'current_stock' : 'stock_quantity';
-                $item->product->increment($stockField, $item->quantity);
+                // Repor estoque na coluna única
+                $item->product->increment('current_stock', $item->quantity);
                 
                 // Registrar movimentação de estoque
                 $item->product->stockMovements()->create([

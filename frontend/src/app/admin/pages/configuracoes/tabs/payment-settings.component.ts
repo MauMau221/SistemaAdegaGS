@@ -111,31 +111,10 @@ import { SystemSettings } from '../../../services/settings.service';
               </mat-icon>
             </mat-form-field>
 
-            <!-- QR Code -->
-            <div class="qr-code-section" *ngIf="settings.pix_qr_code">
-              <img [src]="settings.pix_qr_code" 
-                   alt="QR Code PIX"
-                   class="qr-code-preview">
-              <button mat-stroked-button
-                      color="warn"
-                      (click)="removeQrCode()">
-                <mat-icon>delete</mat-icon>
-                Remover QR Code
-              </button>
-            </div>
-
-            <div class="qr-code-upload" *ngIf="!settings.pix_qr_code">
-              <button mat-stroked-button
-                      color="primary"
-                      (click)="qrCodeInput.click()">
-                <mat-icon>upload</mat-icon>
-                Upload QR Code
-              </button>
-              <input #qrCodeInput
-                     type="file"
-                     accept="image/*"
-                     (change)="onQrCodeSelected($event)"
-                     style="display: none">
+            <!-- Integração de QR Code desabilitada por enquanto; futura integração Mercado Pago -->
+            <div class="qr-code-upload" style="opacity: .6;">
+              <mat-icon>qr_code_2</mat-icon>
+              <span>Em breve: integração automática de PIX via Mercado Pago</span>
             </div>
           </div>
         </div>
@@ -262,13 +241,18 @@ export class PaymentSettingsComponent {
 
   ngOnInit(): void {
     this.originalSettings = { ...this.settings };
+    this.ensurePaymentMethods();
   }
 
   getPaymentMethod(method: 'credit_card' | 'debit_card' | 'cash' | 'pix') {
-    return this.settings.accepted_payment_methods.find(m => m.method === method) || {
-      method,
-      enabled: false
-    };
+    if (!this.settings.accepted_payment_methods) {
+      this.ensurePaymentMethods();
+    }
+    const existing = this.settings.accepted_payment_methods.find(m => m.method === method);
+    if (existing) return existing;
+    const created = { method, enabled: false } as any;
+    this.settings.accepted_payment_methods.push(created);
+    return created;
   }
 
   onQrCodeSelected(event: Event): void {
@@ -318,5 +302,23 @@ export class PaymentSettingsComponent {
       }
     });
     return changes;
+  }
+
+  private ensurePaymentMethods(): void {
+    const defaults = [
+      { method: 'credit_card', enabled: false, additional_fee: 0 },
+      { method: 'debit_card', enabled: false, additional_fee: 0 },
+      { method: 'cash', enabled: true },
+      { method: 'pix', enabled: true }
+    ];
+    if (!Array.isArray(this.settings.accepted_payment_methods)) {
+      this.settings.accepted_payment_methods = [] as any;
+    }
+    for (const def of defaults) {
+      const exists = this.settings.accepted_payment_methods.find(m => m.method === def.method);
+      if (!exists) {
+        this.settings.accepted_payment_methods.push({ ...(def as any) });
+      }
+    }
   }
 }

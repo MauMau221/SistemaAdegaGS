@@ -106,7 +106,7 @@ export interface BackupInfo {
   providedIn: 'root'
 })
 export class SettingsService {
-  private apiUrl = `${environment.apiUrl}/settings`;
+  private apiUrl = `${environment.apiUrl}/admin/settings`;
   private settings = new BehaviorSubject<SystemSettings | null>(null);
 
   constructor(private http: HttpClient) {}
@@ -118,7 +118,7 @@ export class SettingsService {
   }
 
   updateSettings(settings: Partial<SystemSettings>): Observable<SystemSettings> {
-    return this.http.patch<SystemSettings>(this.apiUrl, settings).pipe(
+    return this.http.put<SystemSettings>(this.apiUrl, settings).pipe(
       tap(updatedSettings => this.settings.next(updatedSettings))
     );
   }

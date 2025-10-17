@@ -16,6 +16,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 // import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
+import Chart from 'chart.js/auto';
+import type { ChartConfiguration } from 'chart.js';
 
 import {
   ReportService,
@@ -28,7 +30,7 @@ import {
 import { CategoryService } from '../../services/category.service';
 import { UserService } from '../../services/user.service';
 
-// Chart.register(...registerables);
+// Usando chart.js/auto, não é necessário registrar manualmente
 
 @Component({
   selector: 'app-relatorios',
@@ -132,8 +134,9 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
         this.customerReport = data.customers;
         this.employeeReport = data.employees;
         
-        this.updateCharts();
         this.loading = false;
+        // Garantir que o DOM renderize os canvases antes de montar os gráficos
+        setTimeout(() => this.updateCharts());
       },
       error: (error) => {
         console.error('Erro ao carregar relatórios:', error);
@@ -144,101 +147,99 @@ export class RelatoriosComponent implements OnInit, OnDestroy {
   }
 
   private updateCharts(): void {
-    if (!this.salesReport || !this.stockReport || !this.customerReport) return;
-
-    // Gráficos temporariamente desabilitados
-    return;
-
+    console.log('Atualizando gráficos...');
+    console.log('Sales Report:', this.salesReport);
+    console.log('Stock Report:', this.stockReport);
+    console.log('Customer Report:', this.customerReport);
+    console.log('Stock movements:', this.stockReport?.stock_movements);
+    console.log('New customers:', this.customerReport?.new_customers);
+    
+    // Render condicional e seguro por seção
     // Vendas
-    const salesData = this.salesReport?.sales_by_period;
-    this.salesChart?.destroy();
-    /*this.salesChart = new Chart(this.salesChartRef.nativeElement, {
-      type: 'line',
-      data: {
-        labels: salesData.map(d => this.formatDate(d.date)),
-        datasets: [
-          {
-            label: 'Vendas',
-            data: salesData.map(d => d.sales),
-            borderColor: '#4caf50',
-            tension: 0.4
+    if (this.salesReport && this.salesChartRef?.nativeElement) {
+      const salesData = this.salesReport.sales_by_period || [];
+      this.salesChart?.destroy();
+      if (salesData.length) {
+        console.log('Criando gráfico de vendas com dados:', salesData);
+        const cfg: ChartConfiguration<'line'> = {
+          type: 'line',
+          data: {
+            labels: salesData.map(d => this.formatDate(d.date)),
+            datasets: [
+              {
+                label: 'Vendas',
+                data: salesData.map(d => d.sales),
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76,175,80,0.2)',
+                tension: 0.3
+              },
+              {
+                label: 'Receita',
+                data: salesData.map(d => d.revenue),
+                borderColor: '#2196f3',
+                backgroundColor: 'rgba(33,150,243,0.2)',
+                tension: 0.3
+              }
+            ]
           },
-          {
-            label: 'Receita',
-            data: salesData.map(d => d.revenue),
-            borderColor: '#2196f3',
-            tension: 0.4
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: 'Vendas e Receita por Período' },
+              legend: { display: true }
+            },
+            scales: { x: { ticks: { autoSkip: true, maxTicksLimit: 10 } } }
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Vendas e Receita por Período'
-          }
-        }
+        };
+        this.salesChart = new Chart(this.salesChartRef.nativeElement, cfg);
+      } else {
+        console.log('Dados de vendas insuficientes:', salesData);
       }
-    });
-
-    // Estoque
-    const stockData = this.stockReport.stock_movements;
-    this.stockChart?.destroy();
-    this.stockChart = new Chart(this.stockChartRef.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: stockData.map(d => this.formatDate(d.date)),
-        datasets: [
-          {
-            label: 'Entradas',
-            data: stockData.filter(d => d.type === 'in').map(d => d.value),
-            backgroundColor: '#4caf50'
-          },
-          {
-            label: 'Saídas',
-            data: stockData.filter(d => d.type === 'out').map(d => d.value),
-            backgroundColor: '#f44336'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Movimentações de Estoque'
-          }
-        }
-      }
-    });
+    }
 
     // Clientes
-    const customerData = this.customerReport.new_customers;
-    this.customersChart?.destroy();
-    this.customersChart = new Chart(this.customersChartRef.nativeElement, {
-      type: 'bar',
-      data: {
-        labels: customerData.map(d => this.formatDate(d.date)),
-        datasets: [{
-          label: 'Novos Clientes',
-          data: customerData.map(d => d.count),
-          backgroundColor: '#ff9800'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Novos Clientes por Período'
-          }
-        }
+    if (this.customerReport && this.customersChartRef?.nativeElement) {
+      const customerData = this.customerReport.new_customers || [];
+      this.customersChart?.destroy();
+      if (customerData.length) {
+        console.log('Criando gráfico de clientes com dados:', customerData);
+        const cfg: ChartConfiguration<'bar'> = {
+          type: 'bar',
+          data: {
+            labels: customerData.map(d => this.formatDate(d.date)),
+            datasets: [{ label: 'Novos Clientes', data: customerData.map(d => d.count), backgroundColor: '#ff9800' }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        };
+        this.customersChart = new Chart(this.customersChartRef.nativeElement, cfg);
+      } else {
+        console.log('Dados de clientes insuficientes:', customerData);
       }
-    });*/
+    }
+
+    // Estoque
+    if (this.stockReport && this.stockChartRef?.nativeElement) {
+      const stockData = this.stockReport.stock_movements || [];
+      this.stockChart?.destroy();
+      if (stockData.length) {
+        console.log('Criando gráfico de estoque com dados:', stockData);
+        const cfg: ChartConfiguration<'bar'> = {
+          type: 'bar',
+          data: {
+            labels: stockData.map(d => this.formatDate(d.date)),
+            datasets: [
+              { label: 'Entradas', data: stockData.filter(d => d.type === 'in').map(d => d.value), backgroundColor: '#4caf50' },
+              { label: 'Saídas', data: stockData.filter(d => d.type === 'out').map(d => d.value), backgroundColor: '#f44336' }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        };
+        this.stockChart = new Chart(this.stockChartRef.nativeElement, cfg);
+      } else {
+        console.log('Dados de estoque insuficientes:', stockData);
+      }
+    }
   }
 
   exportReport(type: string, format: 'pdf' | 'xlsx' | 'csv'): void {

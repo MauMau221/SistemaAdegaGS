@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { SettingsService, SystemSettings } from '../../../../admin/services/settings.service';
 
 @Component({
   selector: 'app-open-cash-dialog',
@@ -115,8 +116,16 @@ export class OpenCashDialogComponent {
   initialAmount: number = 0;
   password: string = '';
   errorMessage: string = '';
+  settings: SystemSettings | null = null;
 
-  constructor(private dialogRef: MatDialogRef<OpenCashDialogComponent>) {}
+  constructor(private dialogRef: MatDialogRef<OpenCashDialogComponent>, private settingsService: SettingsService) {}
+
+  ngOnInit(): void {
+    this.settingsService.getSettings().subscribe({
+      next: (s) => this.settings = s,
+      error: () => {}
+    });
+  }
 
   onCancel(): void {
     this.dialogRef.close();
@@ -125,10 +134,9 @@ export class OpenCashDialogComponent {
   onConfirm(): void {
     this.errorMessage = '';
     
-    // Validar senha
-    const storedPassword = localStorage.getItem('admin_cash_password') || 'admin123'; // Senha padrão
-    
-    if (this.password !== storedPassword) {
+    // Validar senha (usa settings se configurada)
+    const required = (this.settings && (this.settings as any)['cash_open_password']) || localStorage.getItem('admin_cash_password');
+    if (required && this.password !== required) {
       this.errorMessage = 'Senha incorreta. Tente novamente.';
       return;
     }

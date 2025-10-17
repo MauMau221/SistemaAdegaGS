@@ -159,8 +159,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Brahma Duplo Malte Lata 350ml - 12 Unidades',
                 'price' => 39.90,
                 'cost_price' => 30.00,
-                'stock_quantity' => 50,
-                'min_stock_quantity' => 20,
+                'current_stock' => 50,
+                'min_stock' => 20,
                 'featured' => true,
                 'initial_stock' => 100
             ],
@@ -169,8 +169,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Original Lata 350ml - 12 Unidades',
                 'price' => 45.90,
                 'cost_price' => 35.00,
-                'stock_quantity' => 5,
-                'min_stock_quantity' => 15,
+                'current_stock' => 5,
+                'min_stock' => 15,
                 'featured' => true,
                 'initial_stock' => 50
             ],
@@ -179,8 +179,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Heineken Lata 350ml - 12 Unidades',
                 'price' => 52.90,
                 'cost_price' => 42.00,
-                'stock_quantity' => 10,
-                'min_stock_quantity' => 10,
+                'current_stock' => 10,
+                'min_stock' => 10,
                 'featured' => true,
                 'initial_stock' => 30
             ],
@@ -191,8 +191,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Stella Artois Long Neck 275ml - 6 Unidades',
                 'price' => 39.90,
                 'cost_price' => 30.00,
-                'stock_quantity' => 40,
-                'min_stock_quantity' => 15,
+                'current_stock' => 40,
+                'min_stock' => 15,
                 'featured' => false,
                 'initial_stock' => 40
             ],
@@ -201,8 +201,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pack Cerveja Budweiser Long Neck 330ml - 6 Unidades',
                 'price' => 36.90,
                 'cost_price' => 28.00,
-                'stock_quantity' => 45,
-                'min_stock_quantity' => 15,
+                'current_stock' => 45,
+                'min_stock' => 15,
                 'featured' => true,
                 'initial_stock' => 45
             ],
@@ -213,8 +213,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Smirnoff Ice 275ml',
                 'price' => 9.90,
                 'cost_price' => 7.00,
-                'stock_quantity' => 8,
-                'min_stock_quantity' => 20,
+                'current_stock' => 8,
+                'min_stock' => 20,
                 'featured' => true,
                 'initial_stock' => 100
             ],
@@ -223,8 +223,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Skol Beats Senses 313ml',
                 'price' => 8.90,
                 'cost_price' => 6.50,
-                'stock_quantity' => 80,
-                'min_stock_quantity' => 30,
+                'current_stock' => 80,
+                'min_stock' => 30,
                 'featured' => false,
                 'initial_stock' => 80
             ],
@@ -235,8 +235,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Red Bull Energy Drink 250ml',
                 'price' => 9.90,
                 'cost_price' => 7.50,
-                'stock_quantity' => 100,
-                'min_stock_quantity' => 50,
+                'current_stock' => 100,
+                'min_stock' => 50,
                 'featured' => true,
                 'initial_stock' => 100
             ],
@@ -245,8 +245,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Monster Energy 473ml',
                 'price' => 11.90,
                 'cost_price' => 8.50,
-                'stock_quantity' => 80,
-                'min_stock_quantity' => 40,
+                'current_stock' => 80,
+                'min_stock' => 40,
                 'featured' => true,
                 'initial_stock' => 80
             ],
@@ -257,8 +257,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Whisky Jack Daniels 1L',
                 'price' => 159.90,
                 'cost_price' => 120.00,
-                'stock_quantity' => 3,
-                'min_stock_quantity' => 5,
+                'current_stock' => 3,
+                'min_stock' => 5,
                 'featured' => true,
                 'initial_stock' => 20
             ],
@@ -267,8 +267,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Vodka Absolut Original 750ml',
                 'price' => 89.90,
                 'cost_price' => 65.00,
-                'stock_quantity' => 30,
-                'min_stock_quantity' => 10,
+                'current_stock' => 30,
+                'min_stock' => 10,
                 'featured' => false,
                 'initial_stock' => 30
             ],
@@ -277,8 +277,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Gin Tanqueray 750ml',
                 'price' => 129.90,
                 'cost_price' => 95.00,
-                'stock_quantity' => 25,
-                'min_stock_quantity' => 8,
+                'current_stock' => 25,
+                'min_stock' => 8,
                 'featured' => true,
                 'initial_stock' => 25
             ],
@@ -289,8 +289,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Coca-Cola 2L',
                 'price' => 9.90,
                 'cost_price' => 7.00,
-                'stock_quantity' => 100,
-                'min_stock_quantity' => 50,
+                'current_stock' => 100,
+                'min_stock' => 50,
                 'featured' => false,
                 'initial_stock' => 100
             ],
@@ -299,8 +299,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Guaraná Antarctica 2L',
                 'price' => 8.90,
                 'cost_price' => 6.00,
-                'stock_quantity' => 100,
-                'min_stock_quantity' => 50,
+                'current_stock' => 100,
+                'min_stock' => 50,
                 'featured' => false,
                 'initial_stock' => 100
             ],
@@ -309,8 +309,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Fanta Laranja 2L',
                 'price' => 8.90,
                 'cost_price' => 6.00,
-                'stock_quantity' => 80,
-                'min_stock_quantity' => 40,
+                'current_stock' => 80,
+                'min_stock' => 40,
                 'featured' => false,
                 'initial_stock' => 80
             ],
@@ -321,8 +321,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Del Valle Uva 1L',
                 'price' => 7.90,
                 'cost_price' => 5.00,
-                'stock_quantity' => 60,
-                'min_stock_quantity' => 30,
+                'current_stock' => 60,
+                'min_stock' => 30,
                 'featured' => false,
                 'initial_stock' => 60
             ],
@@ -331,8 +331,8 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Suco Natural One Laranja 1.5L',
                 'price' => 14.90,
                 'cost_price' => 10.00,
-                'stock_quantity' => 40,
-                'min_stock_quantity' => 20,
+                'current_stock' => 40,
+                'min_stock' => 20,
                 'featured' => true,
                 'initial_stock' => 40
             ]
@@ -351,10 +351,8 @@ class DatabaseSeeder extends Seeder
                 'description' => $productData['name'],
                 'price' => $productData['price'],
                 'cost_price' => $productData['cost_price'],
-                'stock_quantity' => $productData['stock_quantity'],
-                'min_stock_quantity' => $productData['min_stock_quantity'],
-                'current_stock' => $productData['stock_quantity'], // Sincronizar campos
-                'min_stock' => $productData['min_stock_quantity'], // Sincronizar campos
+                'current_stock' => $productData['current_stock'],
+                'min_stock' => $productData['min_stock'],
                 'sku' => Str::upper(Str::random(8)),
                 'is_active' => true,
                 'featured' => $productData['featured'],
@@ -374,8 +372,8 @@ class DatabaseSeeder extends Seeder
             ]);
 
             // Se o estoque atual for diferente do inicial, criar uma movimentação de saída
-            if ($initialStock != $productData['stock_quantity']) {
-                $saidaQuantity = $initialStock - $productData['stock_quantity'];
+            if ($initialStock != $productData['current_stock']) {
+                $saidaQuantity = $initialStock - $productData['current_stock'];
                 
                 StockMovement::create([
                     'product_id' => $product->id,
@@ -391,10 +389,24 @@ class DatabaseSeeder extends Seeder
         $statuses = ['pending', 'delivering', 'completed', 'cancelled'];
         $paymentMethods = ['dinheiro', 'cartão de crédito', 'cartão de débito', 'pix'];
 
-        for ($i = 0; $i < 20; $i++) {
+        // Gerar pedidos recentes (últimos 7 dias), garantindo maioria concluída para alimentar relatórios
+        for ($i = 0; $i < 24; $i++) {
             $customer = $customers[array_rand($customers)];
-            $status = $statuses[array_rand($statuses)];
-            $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
+            // 70% completed, 20% pending, 10% delivering
+            $statusRoll = rand(1, 100);
+            if ($statusRoll <= 70) {
+                $status = 'completed';
+            } elseif ($statusRoll <= 90) {
+                $status = 'pending';
+            } else {
+                $status = 'delivering';
+            }
+            // Distribuir métodos com mais peso em PIX e Cartão Crédito
+            $pmRoll = rand(1, 100);
+            if ($pmRoll <= 45) $paymentMethod = 'pix';
+            elseif ($pmRoll <= 75) $paymentMethod = 'cartão de crédito';
+            elseif ($pmRoll <= 95) $paymentMethod = 'cartão de débito';
+            else $paymentMethod = 'dinheiro';
             
             // Buscar endereço do cliente (ou criar um se não existir)
             $customerAddress = Address::where('user_id', $customer->id)->first();
@@ -455,10 +467,39 @@ class DatabaseSeeder extends Seeder
             ]);
 
             // Definir data aleatória nos últimos 7 dias
-            $date = now()->subDays(rand(0, 7))->subHours(rand(0, 24));
+            $date = now()->subDays(rand(0, 6))->setTime(rand(9, 22), rand(0, 59), 0);
             $order->created_at = $date;
             $order->updated_at = $date;
             $order->save();
+        }
+
+        // Criar movimentações de estoque para os gráficos
+        for ($i = 0; $i < 15; $i++) {
+            $product = $createdProducts[array_rand($createdProducts)];
+            $quantity = rand(1, 10);
+            $type = rand(0, 1) ? 'entrada' : 'saida';
+            $date = now()->subDays(rand(0, 6))->setTime(rand(8, 18), rand(0, 59), 0);
+            
+            StockMovement::create([
+                'product_id' => $product->id,
+                'type' => $type,
+                'quantity' => $quantity,
+                'description' => $type === 'entrada' ? 'Compra' : 'Venda',
+                'created_at' => $date,
+                'updated_at' => $date
+            ]);
+        }
+
+        // Criar dados de novos clientes para os gráficos
+        for ($i = 0; $i < 10; $i++) {
+            $date = now()->subDays(rand(0, 6));
+            User::create([
+                'name' => 'Cliente Teste ' . ($i + 1),
+                'email' => 'cliente' . ($i + 1) . '@teste.com',
+                'password' => bcrypt('password'),
+                'created_at' => $date,
+                'updated_at' => $date
+            ]);
         }
     }
 }

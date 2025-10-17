@@ -40,8 +40,8 @@ export class ProductCardComponent {
   }
 
   getLowStock(product: Product): boolean {
-    const current = (product as any).current_stock ?? (product as any).stock_quantity ?? 0;
-    const min = (product as any).min_stock ?? (product as any).min_stock_quantity ?? 0;
+    const current = (product as any).current_stock ?? 0;
+    const min = (product as any).min_stock ?? 0;
     return current <= min;
   }
 }

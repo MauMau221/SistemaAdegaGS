@@ -59,6 +59,8 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/reports/categories', [ReportController::class, 'categories']);
     Route::get('/admin/reports/users', [ReportController::class, 'users']);
     Route::get('/admin/reports/stock', [ReportController::class, 'stock']);
+    Route::get('/admin/reports/customers', [ReportController::class, 'customers']);
+    Route::get('/admin/reports/employees', [ReportController::class, 'employees']);
 
     // Dashboard
     Route::get('/admin/dashboard/summary', [ReportController::class, 'dashboardSummary']);

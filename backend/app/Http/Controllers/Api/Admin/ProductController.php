@@ -35,7 +35,7 @@ class ProductController extends Controller
         }
 
         if ($request->has('low_stock') && $request->low_stock) {
-            $query->whereColumn('stock_quantity', '<=', 'min_stock_quantity');
+            $query->whereColumn('current_stock', '<=', 'min_stock');
         }
 
         // Ordenação
@@ -68,8 +68,8 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'min_stock_quantity' => 'required|integer|min:0',
+            'current_stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
             'sku' => 'required|string|unique:products,sku',
             'barcode' => 'nullable|string|unique:products,barcode',
             'category_id' => 'required|exists:categories,id',
@@ -81,8 +81,8 @@ class ProductController extends Controller
         $product->name = $request->name;
         $product->description = $request->description;
         $product->price = $request->price;
-        $product->stock_quantity = $request->stock_quantity;
-        $product->min_stock_quantity = $request->min_stock_quantity;
+        $product->current_stock = $request->current_stock;
+        $product->min_stock = $request->min_stock;
         $product->sku = $request->sku;
         $product->barcode = $request->barcode;
         $product->category_id = $request->category_id;
@@ -99,7 +99,7 @@ class ProductController extends Controller
         $product->stockMovements()->create([
             'user_id' => auth()->id(),
             'type' => 'entrada',
-            'quantity' => $request->stock_quantity,
+            'quantity' => $request->current_stock,
             'description' => 'Estoque inicial'
         ]);
 
@@ -112,8 +112,8 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
-            'min_stock_quantity' => 'required|integer|min:0',
+            'current_stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
             'sku' => 'required|string|unique:products,sku,' . $product->id,
             'barcode' => 'nullable|string|unique:products,barcode,' . $product->id,
             'category_id' => 'required|exists:categories,id',
@@ -121,14 +121,14 @@ class ProductController extends Controller
             'is_active' => 'boolean'
         ]);
 
-        $oldStock = $product->stock_quantity;
-        $newStock = $request->stock_quantity;
+        $oldStock = $product->current_stock;
+        $newStock = $request->current_stock;
 
         $product->name = $request->name;
         $product->description = $request->description;
         $product->price = $request->price;
-        $product->stock_quantity = $newStock;
-        $product->min_stock_quantity = $request->min_stock_quantity;
+        $product->current_stock = $newStock;
+        $product->min_stock = $request->min_stock;
         $product->sku = $request->sku;
         $product->barcode = $request->barcode;
         $product->category_id = $request->category_id;

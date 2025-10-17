@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\Setting;
 
 class SettingController extends Controller
 {
     public function index(): JsonResponse
     {
-        $settings = [
+        // Defaults
+        $defaults = [
             // Configurações Gerais
             'site_name' => config('app.name', 'Adega'),
             'site_description' => 'Sistema de gerenciamento de adega',
@@ -35,7 +37,12 @@ class SettingController extends Controller
             'business_email' => 'contato@adega.com',
 
             // Configurações de Pagamento
-            'payment_methods' => ['credit_card', 'debit_card', 'pix', 'cash'],
+            'accepted_payment_methods' => [
+                ['method' => 'credit_card', 'enabled' => true, 'additional_fee' => 0],
+                ['method' => 'debit_card', 'enabled' => true, 'additional_fee' => 0],
+                ['method' => 'pix', 'enabled' => true],
+                ['method' => 'cash', 'enabled' => true]
+            ],
             'default_payment_method' => 'pix',
             'pix_key' => 'pix@adega.com',
             'credit_card_fee' => 0.03,
@@ -81,6 +88,7 @@ class SettingController extends Controller
             'max_login_attempts' => 5,
             'lockout_duration' => 15, // minutos
             'two_factor_auth' => false,
+            'cash_open_password' => null,
 
             // Configurações de Integrações
             'google_analytics' => '',
@@ -91,6 +99,9 @@ class SettingController extends Controller
             'twitter_url' => ''
         ];
 
+        // Merge stored settings
+        $stored = Setting::all()->pluck('value', 'key')->toArray();
+        $settings = array_merge($defaults, $stored);
         return response()->json($settings);
     }
 
@@ -158,9 +169,19 @@ class SettingController extends Controller
             'twitter_url' => 'nullable|url|max:255'
         ]);
 
-        // Salvar configurações (implementar lógica de salvamento)
-        // Por enquanto, retornar sucesso
-        return response()->json(['message' => 'Configurações atualizadas com sucesso']);
+        // Persistir apenas chaves fornecidas
+        $data = $request->all();
+        foreach ($data as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+        // Retornar settings mescladas
+        $stored = Setting::all()->pluck('value', 'key')->toArray();
+        $defaults = (new self)->index()->getData(true); // not ideal; recompor manualmente
+        // Como atalho, recarregar via index simples
+        return $this->index();
     }
 
     public function backup(): JsonResponse

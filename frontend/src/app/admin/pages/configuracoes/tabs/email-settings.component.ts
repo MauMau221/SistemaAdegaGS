@@ -310,6 +310,7 @@ export class EmailSettingsComponent {
 
   ngOnInit(): void {
     this.originalSettings = { ...this.settings };
+    this.ensureEmailTemplates();
   }
 
   testEmailSettings(): void {
@@ -361,5 +362,21 @@ export class EmailSettingsComponent {
       }
     });
     return changes;
+  }
+
+  private ensureEmailTemplates(): void {
+    if (!this.settings.email_templates) {
+      this.settings.email_templates = {
+        welcome: '',
+        order_confirmation: '',
+        order_status: '',
+        password_reset: ''
+      } as any;
+    } else {
+      this.settings.email_templates.welcome = this.settings.email_templates.welcome || '';
+      this.settings.email_templates.order_confirmation = this.settings.email_templates.order_confirmation || '';
+      this.settings.email_templates.order_status = this.settings.email_templates.order_status || '';
+      this.settings.email_templates.password_reset = this.settings.email_templates.password_reset || '';
+    }
   }
 }

@@ -101,33 +101,37 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|confirmed|min:8',
-            'type' => 'required|in:admin,employee,customer',
-            'phone' => 'nullable|string|max:20',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean',
-            'address' => 'nullable|array',
-            'address.street' => 'nullable|string|max:255',
-            'address.number' => 'nullable|string|max:10',
-            'address.complement' => 'nullable|string|max:255',
-            'address.neighborhood' => 'nullable|string|max:255',
-            'address.city' => 'nullable|string|max:255',
-            'address.state' => 'nullable|string|max:2',
-            'address.zipcode' => 'nullable|string|max:10'
-        ]);
+        try {
+            \Log::info('Updating user: ' . $user->id);
+            \Log::info('Request data: ' . json_encode($request->all()));
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->type = $request->type;
-        $user->phone = $request->phone;
-        $user->is_active = $request->boolean('is_active', true);
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'password' => 'nullable|confirmed|min:8',
+                'type' => 'required|in:admin,employee,customer',
+                'phone' => 'nullable|string|max:20',
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'is_active' => 'nullable',
+                'address' => 'nullable|array',
+                'address.street' => 'nullable|string|max:255',
+                'address.number' => 'nullable|string|max:10',
+                'address.complement' => 'nullable|string|max:255',
+                'address.neighborhood' => 'nullable|string|max:255',
+                'address.city' => 'nullable|string|max:255',
+                'address.state' => 'nullable|string|max:2',
+                'address.zipcode' => 'nullable|string|max:10'
+            ]);
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->type = $request->type;
+            $user->phone = $request->phone;
+            $user->is_active = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
 
         if ($request->hasFile('avatar')) {
             // Deletar avatar anterior se existir
@@ -150,7 +154,16 @@ class UserController extends Controller
             }
         }
 
+        $user->save();
+        \Log::info('User updated successfully: ' . $user->id);
+
         return response()->json($user);
+        } catch (\Exception $e) {
+            \Log::error('Error updating user: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json(['error' => 'Erro ao salvar usuário: ' . $e->getMessage()], 500);
+        }
     }
 
     public function destroy(User $user): JsonResponse
