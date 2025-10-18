@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -8,6 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../core/services/auth.service';
+import { SettingsService, SystemSettings } from '../../services/settings.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin-layout',
@@ -27,8 +29,12 @@ import { AuthService } from '../../../core/services/auth.service';
       <mat-sidenav mode="side" opened class="admin-sidenav">
         <div class="sidenav-header">
           <div class="brand">
-            <mat-icon>local_bar</mat-icon>
-            <span>ADEGA GS</span>
+            <img *ngIf="settings?.logo_url" 
+                 [src]="getLogoUrl(settings?.logo_url)" 
+                 alt="Logo" 
+                 class="brand-logo">
+            <mat-icon *ngIf="!settings?.logo_url">local_bar</mat-icon>
+            <span>{{settings?.site_name || 'ADEGA GS'}}</span>
           </div>
           <small>Painel Admin</small>
         </div>
@@ -111,6 +117,13 @@ import { AuthService } from '../../../core/services/auth.service';
 
     .brand mat-icon { color: #60a5fa; }
     .brand span { color: #fff; }
+    
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      margin-right: 8px;
+    }
 
     .nav { display: flex; flex-direction: column; padding: 8px; gap: 4px; }
 
@@ -179,13 +192,57 @@ import { AuthService } from '../../../core/services/auth.service';
     .nav .nav-item.active mat-icon, .nav .nav-item.active span { color: #ffffff; }
   `]
 })
-export class AdminLayoutComponent {
+export class AdminLayoutComponent implements OnInit, OnDestroy {
   userName = '';
   pageTitle = 'Dashboard';
+  settings: SystemSettings | null = null;
+  private settingsSubscription?: Subscription;
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private settingsService: SettingsService
+  ) {
     const user = this.authService.getUser();
     this.userName = user?.name || 'Admin';
+  }
+
+  ngOnInit(): void {
+    // Carregar configurações iniciais
+    this.settingsService.getSettings().subscribe({
+      next: (settings) => {
+        this.settings = settings;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar configurações:', error);
+      }
+    });
+
+    // Observar mudanças nas configurações
+    this.settingsSubscription = this.settingsService.watchSettings().subscribe(settings => {
+      this.settings = settings;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.settingsSubscription) {
+      this.settingsSubscription.unsubscribe();
+    }
+  }
+
+  getLogoUrl(logoUrl: string | undefined): string {
+    if (!logoUrl) return '';
+    
+    // Se a URL já é completa, retorna como está
+    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+      return logoUrl;
+    }
+    
+    // Se é um caminho relativo, adiciona a URL do backend
+    if (logoUrl.startsWith('/storage/')) {
+      return 'http://localhost:8000' + logoUrl;
+    }
+    
+    return logoUrl;
   }
 
   logout(): void {

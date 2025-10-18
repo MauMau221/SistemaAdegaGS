@@ -45,29 +45,6 @@ import { UserService, User, CreateUserDTO } from '../../../services/user.service
           <ng-template matStepLabel>Informações Básicas</ng-template>
           <form [formGroup]="basicInfoForm">
             <div class="form-container">
-              <!-- Avatar -->
-              <div class="avatar-upload">
-                <div class="preview" 
-                     [class.has-image]="avatarPreview"
-                     (click)="fileInput.click()">
-                  <img *ngIf="avatarPreview" [src]="avatarPreview" alt="Preview">
-                  <mat-icon *ngIf="!avatarPreview">account_circle</mat-icon>
-                  <div class="overlay">
-                    <mat-icon>edit</mat-icon>
-                  </div>
-                </div>
-                <input #fileInput type="file" 
-                       accept="image/*" 
-                       (change)="onAvatarSelected($event)"
-                       style="display: none">
-                <button *ngIf="avatarPreview" 
-                        type="button"
-                        mat-icon-button 
-                        color="warn"
-                        (click)="removeAvatar()">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
 
               <!-- Campos Básicos -->
               <div class="form-row">
@@ -274,66 +251,6 @@ import { UserService, User, CreateUserDTO } from '../../../services/user.service
       margin-top: 8px;
     }
 
-    .avatar-upload {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .preview {
-      width: 100px;
-      height: 100px;
-      border: 2px dashed #ccc;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .preview.has-image {
-      border-style: solid;
-    }
-
-    .preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .preview mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      color: #ccc;
-    }
-
-    .preview .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .preview:hover .overlay {
-      opacity: 1;
-    }
-
-    .preview .overlay mat-icon {
-      color: white;
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
-    }
 
     .helper-text {
       color: #666;
@@ -367,8 +284,6 @@ export class UserFormDialogComponent implements OnInit {
   addressForm: FormGroup;
   loading = false;
   isEdit = false;
-  avatarPreview: string | null = null;
-  avatarFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -407,7 +322,6 @@ export class UserFormDialogComponent implements OnInit {
 
     if (this.isEdit && data.user) {
       this.basicInfoForm.patchValue(data.user);
-      this.avatarPreview = data.user.avatar_url || null;
       if (data.user.address) {
         this.addressForm.patchValue(data.user.address);
       }
@@ -445,25 +359,6 @@ export class UserFormDialogComponent implements OnInit {
     return password.value === confirmPassword.value ? null : { passwordMismatch: true };
   }
 
-  onAvatarSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      this.avatarFile = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.avatarPreview = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  removeAvatar(): void {
-    this.avatarFile = null;
-    this.avatarPreview = null;
-    if (this.isEdit && this.data.user?.avatar_url) {
-      this.userService.deleteAvatar(this.data.user?.id || 0).subscribe();
-    }
-  }
 
   onSubmit(): void {
     if (this.basicInfoForm.valid && 
@@ -479,9 +374,6 @@ export class UserFormDialogComponent implements OnInit {
           : undefined
       };
 
-      if (this.avatarFile) {
-        userData.avatar = this.avatarFile;
-      }
 
       const request = this.isEdit
         ? this.userService.updateUser({ id: this.data.user!.id, ...userData })

@@ -1,210 +1,303 @@
 <div class="checkout-page">
-  <div class="container">
-    <h1>Finalizar Pedido</h1>
+  <div class="checkout-container">
+    <!-- Header -->
+    <div class="checkout-header">
+      <h1>Finalizar Pedido</h1>
+      <p class="checkout-subtitle">Complete seu pedido em poucos passos</p>
+    </div>
 
-    <mat-stepper orientation="vertical">
-      <!-- Resumo do Carrinho -->
-      <mat-step label="Resumo do Pedido">
-        <div class="cart-summary">
+    <div class="checkout-content">
+      <!-- Sidebar com Resumo -->
+      <div class="checkout-sidebar">
+        <div class="order-summary-card">
+          <h3>Resumo do Pedido</h3>
+          
           <div class="cart-items">
             <div *ngFor="let item of cartItems$ | async" class="cart-item">
               <div class="item-image">
                 <img [src]="getImageUrl(item.product)" [alt]="item.product.name">
               </div>
               <div class="item-details">
-                <h3 class="item-name">{{ item.product.name }}</h3>
-                <p class="item-price">R$ {{ item.price | number:'1.2-2' }}</p>
-                <p class="item-quantity">Quantidade: {{ item.quantity }}</p>
+                <h4 class="item-name">{{ item.product.name }}</h4>
+                <div class="item-info">
+                  <span class="item-quantity">Qtd: {{ item.quantity }}</span>
+                  <span class="item-price">R$ {{ item.price | number:'1.2-2' }}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="order-summary">
-            <div class="summary-row">
+          <div class="order-totals">
+            <div class="total-row">
               <span>Subtotal</span>
               <span>R$ {{ cartTotal$ | async | number:'1.2-2' }}</span>
             </div>
-            <div class="summary-row">
+            <div class="total-row">
               <span>Taxa de entrega</span>
-              <span>Grátis</span>
+              <span class="free-delivery">Grátis</span>
             </div>
-            <div class="summary-total">
+            <div class="total-final">
               <span>Total</span>
               <span>R$ {{ cartTotal$ | async | number:'1.2-2' }}</span>
             </div>
           </div>
-
-          <div class="step-actions">
-            <button mat-button matStepperNext>Continuar</button>
-          </div>
         </div>
-      </mat-step>
+      </div>
 
-      <!-- Endereço de Entrega -->
-      <mat-step label="Endereço de Entrega" [stepControl]="deliveryForm">
-        <form [formGroup]="deliveryForm">
-          <!-- Seleção de Endereços Salvos -->
-          <div *ngIf="addresses.length > 0" class="address-selection">
-            <h3>Endereços Salvos</h3>
-            <div class="address-options">
-              <mat-radio-group [value]="useSavedAddress" (change)="onAddressOptionChange($event)">
-                <mat-radio-button [value]="true" *ngIf="addresses.length > 0">
-                  Usar endereço salvo
-                </mat-radio-button>
-                <mat-radio-button [value]="false">
-                  Usar novo endereço
-                </mat-radio-button>
-              </mat-radio-group>
-            </div>
-
-            <!-- Lista de Endereços Salvos -->
-            <div *ngIf="useSavedAddress" class="saved-addresses">
-              <mat-card *ngFor="let address of addresses" 
-                        class="address-card" 
-                        [class.selected]="selectedAddressId === address.id"
-                        (click)="selectAddress(address.id)">
-                <mat-card-content>
-                  <div class="address-header">
-                    <h4>{{address.name || 'Endereço'}}</h4>
-                    <mat-chip *ngIf="address.is_default" color="primary" class="default-chip">
-                      <mat-icon>star</mat-icon>
-                      Padrão
-                    </mat-chip>
+      <!-- Conteúdo Principal -->
+      <div class="checkout-main">
+        <mat-stepper orientation="vertical" class="modern-stepper">
+          <!-- Resumo do Carrinho -->
+          <mat-step label="Resumo do Pedido" [completed]="true">
+            <div class="step-content">
+              <div class="step-header">
+                <mat-icon>shopping_cart</mat-icon>
+                <h2>Confirme seus itens</h2>
+              </div>
+              <p class="step-description">Verifique os produtos que você está comprando</p>
+              
+              <div class="cart-preview">
+                <div *ngFor="let item of cartItems$ | async" class="preview-item">
+                  <img [src]="getImageUrl(item.product)" [alt]="item.product.name">
+                  <div class="preview-details">
+                    <h4>{{ item.product.name }}</h4>
+                    <p>{{ item.quantity }}x R$ {{ item.price | number:'1.2-2' }}</p>
                   </div>
-                  <div class="address-details">
-                    <p><strong>{{address.street}}, {{address.number}}</strong></p>
-                    <p *ngIf="address.complement">{{address.complement}}</p>
-                    <p>{{address.neighborhood}}, {{address.city}}/{{address.state}}</p>
-                    <p>CEP: {{address.zipcode}}</p>
-                    <p *ngIf="address.notes"><em>{{address.notes}}</em></p>
+                </div>
+              </div>
+
+              <div class="step-actions">
+                <button mat-raised-button color="primary" matStepperNext class="continue-btn">
+                  <mat-icon>arrow_forward</mat-icon>
+                  Continuar
+                </button>
+              </div>
+            </div>
+          </mat-step>
+
+          <!-- Endereço de Entrega -->
+          <mat-step label="Endereço de Entrega" [stepControl]="deliveryForm">
+            <div class="step-content">
+              <div class="step-header">
+                <mat-icon>location_on</mat-icon>
+                <h2>Onde entregar?</h2>
+              </div>
+              <p class="step-description">Escolha ou cadastre um endereço de entrega</p>
+
+              <form [formGroup]="deliveryForm">
+                <!-- Seleção de Endereços Salvos -->
+                <div *ngIf="addresses.length > 0" class="address-selection">
+                  <div class="address-options">
+                    <mat-radio-group [value]="useSavedAddress" (change)="onAddressOptionChange($event)">
+                      <mat-radio-button [value]="true" *ngIf="addresses.length > 0" class="address-option">
+                        <div class="option-content">
+                          <mat-icon>bookmark</mat-icon>
+                          <span>Usar endereço salvo</span>
+                        </div>
+                      </mat-radio-button>
+                      <mat-radio-button [value]="false" class="address-option">
+                        <div class="option-content">
+                          <mat-icon>add_location</mat-icon>
+                          <span>Novo endereço</span>
+                        </div>
+                      </mat-radio-button>
+                    </mat-radio-group>
                   </div>
-                </mat-card-content>
-              </mat-card>
+
+                  <!-- Lista de Endereços Salvos -->
+                  <div *ngIf="useSavedAddress" class="saved-addresses">
+                    <div *ngFor="let address of addresses" 
+                         class="address-card" 
+                         [class.selected]="selectedAddressId === address.id"
+                         (click)="selectAddress(address.id)">
+                      <div class="address-header">
+                        <h4>{{address.name || 'Endereço'}}</h4>
+                        <mat-chip *ngIf="address.is_default" color="primary" class="default-chip">
+                          <mat-icon>star</mat-icon>
+                          Padrão
+                        </mat-chip>
+                      </div>
+                      <div class="address-details">
+                        <p><strong>{{address.street}}, {{address.number}}</strong></p>
+                        <p *ngIf="address.complement">{{address.complement}}</p>
+                        <p>{{address.neighborhood}}, {{address.city}}/{{address.state}}</p>
+                        <p>CEP: {{address.zipcode}}</p>
+                        <p *ngIf="address.notes"><em>{{address.notes}}</em></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Formulário de Endereço -->
+                <div class="address-form" *ngIf="!useSavedAddress">
+                  <div class="form-section">
+                    <h4>Informações do Endereço</h4>
+                    
+                    <div class="cep-field">
+                      <mat-form-field class="cep-input">
+                        <mat-label>CEP</mat-label>
+                        <input matInput formControlName="zipcode" placeholder="00000-000" (input)="formatZipcode($event); clearError()">
+                        <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['required']">CEP é obrigatório</mat-error>
+                        <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['pattern']">CEP inválido</mat-error>
+                      </mat-form-field>
+                      <button mat-raised-button color="primary" (click)="searchCep()" 
+                              [disabled]="!deliveryForm.get('zipcode')?.value || deliveryForm.get('zipcode')?.errors || loading"
+                              class="cep-button">
+                        <mat-icon>search</mat-icon>
+                        <span *ngIf="!loading">Buscar</span>
+                        <span *ngIf="loading">Buscando...</span>
+                      </button>
+                    </div>
+
+                    <div class="form-grid">
+                      <mat-form-field>
+                        <mat-label>Endereço</mat-label>
+                        <input matInput formControlName="address" placeholder="Rua, Avenida, etc">
+                        <mat-error *ngIf="deliveryForm.get('address')?.errors?.['required']">Endereço é obrigatório</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Número</mat-label>
+                        <input matInput formControlName="number" placeholder="123">
+                        <mat-error *ngIf="deliveryForm.get('number')?.errors?.['required']">Número é obrigatório</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Complemento</mat-label>
+                        <input matInput formControlName="complement" placeholder="Apto, Bloco, etc">
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Bairro</mat-label>
+                        <input matInput formControlName="neighborhood" placeholder="Seu bairro">
+                        <mat-error *ngIf="deliveryForm.get('neighborhood')?.errors?.['required']">Bairro é obrigatório</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Cidade</mat-label>
+                        <input matInput formControlName="city" placeholder="Sua cidade">
+                        <mat-error *ngIf="deliveryForm.get('city')?.errors?.['required']">Cidade é obrigatória</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Estado</mat-label>
+                        <input matInput formControlName="state" placeholder="UF">
+                        <mat-error *ngIf="deliveryForm.get('state')?.errors?.['required']">Estado é obrigatório</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field>
+                        <mat-label>Telefone</mat-label>
+                        <input matInput formControlName="phone" placeholder="(00) 00000-0000" (input)="formatPhone($event)">
+                        <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['required']">Telefone é obrigatório</mat-error>
+                        <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['pattern']">Telefone inválido</mat-error>
+                      </mat-form-field>
+
+                      <mat-form-field class="full-width">
+                        <mat-label>Instruções para entrega</mat-label>
+                        <textarea matInput formControlName="instructions" placeholder="Instruções especiais para entrega"></textarea>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious class="back-btn">
+                    <mat-icon>arrow_back</mat-icon>
+                    Voltar
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext [disabled]="!isDeliveryFormValid()" class="continue-btn">
+                    <mat-icon>arrow_forward</mat-icon>
+                    Continuar
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
+          </mat-step>
 
-          <!-- Formulário de Endereço -->
-          <div class="form-grid" *ngIf="!useSavedAddress">
-            <div class="cep-field">
-              <mat-form-field class="cep-input">
-                <mat-label>CEP</mat-label>
-                <input matInput formControlName="zipcode" placeholder="00000-000" (input)="formatZipcode($event); clearError()">
-                <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['required']">CEP é obrigatório</mat-error>
-                <mat-error *ngIf="deliveryForm.get('zipcode')?.errors?.['pattern']">CEP inválido</mat-error>
-              </mat-form-field>
-              <button mat-raised-button color="primary" (click)="searchCep()" 
-                      [disabled]="!deliveryForm.get('zipcode')?.value || deliveryForm.get('zipcode')?.errors || loading"
-                      class="cep-button">
-                <mat-icon>search</mat-icon>
-                <span *ngIf="!loading">Buscar</span>
-                <span *ngIf="loading">Buscando...</span>
-              </button>
+          <!-- Forma de Pagamento -->
+          <mat-step label="Forma de Pagamento" [stepControl]="paymentForm">
+            <div class="step-content">
+              <div class="step-header">
+                <mat-icon>payment</mat-icon>
+                <h2>Como pagar?</h2>
+              </div>
+              <p class="step-description">Escolha a forma de pagamento que preferir</p>
+
+              <form [formGroup]="paymentForm">
+                <div class="payment-methods">
+                  <mat-radio-group formControlName="method">
+                    <mat-radio-button value="pix" class="payment-option">
+                      <div class="payment-card">
+                        <div class="payment-icon">
+                          <mat-icon>qr_code</mat-icon>
+                        </div>
+                        <div class="payment-info">
+                          <h4>PIX</h4>
+                          <p>Pagamento instantâneo</p>
+                        </div>
+                        <div class="payment-badge">
+                          <span>Recomendado</span>
+                        </div>
+                      </div>
+                    </mat-radio-button>
+
+                    <mat-radio-button value="cash" class="payment-option">
+                      <div class="payment-card">
+                        <div class="payment-icon">
+                          <mat-icon>money</mat-icon>
+                        </div>
+                        <div class="payment-info">
+                          <h4>Dinheiro</h4>
+                          <p>Pagamento na entrega</p>
+                        </div>
+                      </div>
+                    </mat-radio-button>
+
+                    <mat-radio-button value="card" class="payment-option">
+                      <div class="payment-card">
+                        <div class="payment-icon">
+                          <mat-icon>credit_card</mat-icon>
+                        </div>
+                        <div class="payment-info">
+                          <h4>Cartão</h4>
+                          <p>Cartão na entrega</p>
+                        </div>
+                      </div>
+                    </mat-radio-button>
+                  </mat-radio-group>
+
+                  <div *ngIf="paymentForm.get('method')?.value === 'cash'" class="change-field">
+                    <mat-form-field>
+                      <mat-label>Troco para</mat-label>
+                      <input matInput formControlName="change" type="number" placeholder="0.00">
+                      <mat-hint>Deixe em branco se não precisar de troco</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <!-- Mensagem de Erro -->
+                <div *ngIf="error" class="error-message">
+                  <mat-icon>error</mat-icon>
+                  <span>{{ error }}</span>
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious [disabled]="loading" class="back-btn">
+                    <mat-icon>arrow_back</mat-icon>
+                    Voltar
+                  </button>
+                  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="paymentForm.invalid || loading" class="finalize-btn">
+                    <mat-spinner *ngIf="loading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                    <mat-icon *ngIf="!loading">check</mat-icon>
+                    <span *ngIf="!loading">Finalizar Pedido</span>
+                    <span *ngIf="loading">Processando...</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <mat-form-field>
-              <mat-label>Endereço</mat-label>
-              <input matInput formControlName="address" placeholder="Rua, Avenida, etc">
-              <mat-error *ngIf="deliveryForm.get('address')?.errors?.['required']">Endereço é obrigatório</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Número</mat-label>
-              <input matInput formControlName="number" placeholder="123">
-              <mat-error *ngIf="deliveryForm.get('number')?.errors?.['required']">Número é obrigatório</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Complemento</mat-label>
-              <input matInput formControlName="complement" placeholder="Apto, Bloco, etc">
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Bairro</mat-label>
-              <input matInput formControlName="neighborhood" placeholder="Seu bairro">
-              <mat-error *ngIf="deliveryForm.get('neighborhood')?.errors?.['required']">Bairro é obrigatório</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Cidade</mat-label>
-              <input matInput formControlName="city" placeholder="Sua cidade">
-              <mat-error *ngIf="deliveryForm.get('city')?.errors?.['required']">Cidade é obrigatória</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Estado</mat-label>
-              <input matInput formControlName="state" placeholder="UF">
-              <mat-error *ngIf="deliveryForm.get('state')?.errors?.['required']">Estado é obrigatório</mat-error>
-            </mat-form-field>
-
-            <mat-form-field>
-              <mat-label>Telefone</mat-label>
-              <input matInput formControlName="phone" placeholder="(00) 00000-0000" (input)="formatPhone($event)">
-              <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['required']">Telefone é obrigatório</mat-error>
-              <mat-error *ngIf="deliveryForm.get('phone')?.errors?.['pattern']">Telefone inválido</mat-error>
-            </mat-form-field>
-
-            <mat-form-field class="full-width">
-              <mat-label>Instruções para entrega</mat-label>
-              <textarea matInput formControlName="instructions" placeholder="Instruções especiais para entrega"></textarea>
-            </mat-form-field>
-          </div>
-
-          <div class="step-actions">
-            <button mat-button matStepperPrevious>Voltar</button>
-            <button mat-button matStepperNext [disabled]="!isDeliveryFormValid()">Continuar</button>
-          </div>
-        </form>
-      </mat-step>
-
-      <!-- Forma de Pagamento -->
-      <mat-step label="Forma de Pagamento" [stepControl]="paymentForm">
-        <form [formGroup]="paymentForm">
-          <div class="payment-methods">
-            <mat-radio-group formControlName="method">
-              <mat-radio-button value="pix">
-                <div class="payment-option">
-                  <img src="assets/images/pix-logo.png" alt="PIX">
-                  <span>PIX</span>
-                </div>
-              </mat-radio-button>
-
-              <mat-radio-button value="cash">
-                <div class="payment-option">
-                  <img src="assets/images/cash-icon.png" alt="Dinheiro">
-                  <span>Dinheiro</span>
-                </div>
-              </mat-radio-button>
-
-              <mat-radio-button value="card">
-                <div class="payment-option">
-                  <img src="assets/images/card-icon.png" alt="Cartão">
-                  <span>Cartão na Entrega</span>
-                </div>
-              </mat-radio-button>
-            </mat-radio-group>
-
-            <mat-form-field *ngIf="paymentForm.get('method')?.value === 'cash'">
-              <mat-label>Troco para</mat-label>
-              <input matInput formControlName="change" type="number" placeholder="0.00">
-            </mat-form-field>
-          </div>
-
-          <!-- Mensagem de Erro -->
-          <div *ngIf="error" class="alert alert-error">
-            <mat-icon>error</mat-icon>
-            <span>{{ error }}</span>
-          </div>
-
-          <div class="step-actions">
-            <button mat-button matStepperPrevious [disabled]="loading">Voltar</button>
-            <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="paymentForm.invalid || loading">
-              <mat-spinner *ngIf="loading" diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
-              <span *ngIf="!loading">Finalizar Pedido</span>
-              <span *ngIf="loading">Processando...</span>
-            </button>
-          </div>
-        </form>
-      </mat-step>
-    </mat-stepper>
+          </mat-step>
+        </mat-stepper>
+      </div>
+    </div>
   </div>
 </div>

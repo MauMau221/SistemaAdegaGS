@@ -16,6 +16,10 @@ Route::get('/products/{product}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
+// Configurações públicas (sem autenticação)
+Route::get('/public/settings', [App\Http\Controllers\Api\Admin\SettingController::class, 'publicSettings']);
+
+
 // Endpoint de teste sem middleware
 Route::get('/test-no-auth', function () {
     return response()->json(['message' => 'Endpoint funcionando sem autenticação']);

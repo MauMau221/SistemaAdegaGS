@@ -71,7 +71,33 @@ Route::middleware(['admin'])->group(function () {
     // Configurações
     Route::get('/admin/settings', [SettingController::class, 'index']);
     Route::put('/admin/settings', [SettingController::class, 'update']);
+    Route::post('/admin/settings/logo', [SettingController::class, 'uploadLogo']);
+    Route::post('/admin/settings/favicon', [SettingController::class, 'uploadFavicon']);
     Route::post('/admin/settings/backup', [SettingController::class, 'backup']);
     Route::get('/admin/settings/backups', [SettingController::class, 'listBackups']);
     Route::post('/admin/settings/restore', [SettingController::class, 'restore']);
+    
+    // Endpoint de teste para debug
+    Route::post('/admin/settings/test', function(\Illuminate\Http\Request $request) {
+        return response()->json([
+            'message' => 'Test endpoint working',
+            'data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+    });
+
+    // Endpoint de teste para favicon sem autenticação
+    Route::post('/admin/settings/favicon-test', function(\Illuminate\Http\Request $request) {
+        \Log::info('Favicon test endpoint:', [
+            'files' => $request->allFiles(),
+            'headers' => $request->headers->all(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+        
+        return response()->json([
+            'message' => 'Favicon test endpoint working',
+            'files' => $request->allFiles(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+    });
 });

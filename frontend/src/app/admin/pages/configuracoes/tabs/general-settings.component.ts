@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,7 +32,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
         <div class="current-logo" 
              [class.has-logo]="settings.logo_url"
              (click)="logoInput.click()">
-          <img *ngIf="settings.logo_url" [src]="settings.logo_url" alt="Logo">
+          <img *ngIf="settings.logo_url" [src]="getLogoUrl(settings.logo_url)" alt="Logo">
           <mat-icon *ngIf="!settings.logo_url">image</mat-icon>
           <div class="overlay">
             <mat-icon>edit</mat-icon>
@@ -63,7 +63,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
         <div class="current-favicon"
              [class.has-favicon]="settings.favicon_url"
              (click)="faviconInput.click()">
-          <img *ngIf="settings.favicon_url" [src]="settings.favicon_url" alt="Favicon">
+          <img *ngIf="settings.favicon_url" [src]="getFaviconUrl(settings.favicon_url)" alt="Favicon">
           <mat-icon *ngIf="!settings.favicon_url">favicon</mat-icon>
           <div class="overlay">
             <mat-icon>edit</mat-icon>
@@ -307,7 +307,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
     }
   `]
 })
-export class GeneralSettingsComponent {
+export class GeneralSettingsComponent implements OnInit {
   @Input() settings!: SystemSettings;
   @Output() settingsChange = new EventEmitter<Partial<SystemSettings>>();
 
@@ -379,10 +379,12 @@ export class GeneralSettingsComponent {
 
   onFieldChange(): void {
     this.hasChanges = !this.isEqual(this.settings, this.originalSettings);
+    console.log('Field changed, hasChanges:', this.hasChanges);
   }
 
   saveChanges(): void {
     const changes: Partial<SystemSettings> = this.getChanges();
+    console.log('Saving changes:', changes);
     this.settingsChange.emit(changes);
     this.originalSettings = { ...this.settings };
     this.hasChanges = false;
@@ -404,6 +406,44 @@ export class GeneralSettingsComponent {
         changes[key] = this.settings[key];
       }
     });
+    
+    // Log para debug
+    console.log('Changes to be sent:', changes);
+    console.log('Current settings:', this.settings);
+    console.log('Original settings:', this.originalSettings);
+    
     return changes;
+  }
+
+  getLogoUrl(logoUrl: string | undefined): string {
+    if (!logoUrl) return '';
+    
+    // Se a URL já é completa, retorna como está
+    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+      return logoUrl;
+    }
+    
+    // Se é um caminho relativo, adiciona a URL do backend
+    if (logoUrl.startsWith('/storage/')) {
+      return 'http://localhost:8000' + logoUrl;
+    }
+    
+    return logoUrl;
+  }
+
+  getFaviconUrl(faviconUrl: string | undefined): string {
+    if (!faviconUrl) return '';
+    
+    // Se a URL já é completa, retorna como está
+    if (faviconUrl.startsWith('http://') || faviconUrl.startsWith('https://')) {
+      return faviconUrl;
+    }
+    
+    // Se é um caminho relativo, adiciona a URL do backend
+    if (faviconUrl.startsWith('/storage/')) {
+      return 'http://localhost:8000' + faviconUrl;
+    }
+    
+    return faviconUrl;
   }
 }

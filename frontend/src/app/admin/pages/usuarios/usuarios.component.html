@@ -75,18 +75,6 @@
   <mat-card *ngIf="!loading" class="table-card">
     <mat-card-content>
       <table mat-table [dataSource]="users" matSort (matSortChange)="onSortChange($event)">
-        <!-- Avatar -->
-        <ng-container matColumnDef="avatar">
-          <th mat-header-cell *matHeaderCellDef>Avatar</th>
-          <td mat-cell *matCellDef="let user">
-            <div class="user-avatar">
-              <img [src]="user.avatar_url || 'assets/images/avatar-placeholder.png'"
-                   [alt]="user.name"
-                   width="40"
-                   height="40">
-            </div>
-          </td>
-        </ng-container>
 
         <!-- Nome -->
         <ng-container matColumnDef="name">
@@ -155,22 +143,6 @@
               <button mat-menu-item (click)="openUserDialog(user)">
                 <mat-icon>edit</mat-icon>
                 <span>Editar</span>
-              </button>
-              <button mat-menu-item (click)="resetPassword(user)">
-                <mat-icon>lock_reset</mat-icon>
-                <span>Redefinir Senha</span>
-              </button>
-              <button mat-menu-item 
-                      *ngIf="!user.email_verified_at"
-                      (click)="resendVerification(user)">
-                <mat-icon>mark_email_read</mat-icon>
-                <span>Reenviar Verificação</span>
-              </button>
-              <button mat-menu-item 
-                      *ngIf="user.type === 'customer'"
-                      (click)="showStats(user)">
-                <mat-icon>analytics</mat-icon>
-                <span>Estatísticas</span>
               </button>
               <button mat-menu-item (click)="toggleStatus(user)">
                 <mat-icon>{{user.is_active ? 'visibility_off' : 'visibility'}}</mat-icon>

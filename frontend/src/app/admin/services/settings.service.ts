@@ -118,8 +118,14 @@ export class SettingsService {
   }
 
   updateSettings(settings: Partial<SystemSettings>): Observable<SystemSettings> {
+    console.log('Sending settings to API:', settings);
+    console.log('API URL:', this.apiUrl);
+    
     return this.http.put<SystemSettings>(this.apiUrl, settings).pipe(
-      tap(updatedSettings => this.settings.next(updatedSettings))
+      tap(updatedSettings => {
+        console.log('Settings updated in service:', updatedSettings);
+        this.settings.next(updatedSettings);
+      })
     );
   }
 

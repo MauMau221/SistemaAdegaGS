@@ -21,7 +21,6 @@ import { MatChipListbox, MatChipOption } from '@angular/material/chips';
 import { UserService, User } from '../../services/user.service';
 import { UserFormDialogComponent } from './dialogs/user-form-dialog.component';
 import { UserImportDialogComponent } from './dialogs/user-import-dialog.component';
-import { UserStatsDialogComponent } from './dialogs/user-stats-dialog.component';
 
 @Component({
   selector: 'app-usuarios',
@@ -60,7 +59,7 @@ export class UsuariosComponent implements OnInit {
   searchTerm = '';
   selectedType: 'admin' | 'employee' | 'customer' | undefined = undefined;
   showInactive = false;
-  displayedColumns = ['avatar', 'name', 'email', 'type', 'last_login', 'status', 'actions'];
+  displayedColumns = ['name', 'email', 'type', 'last_login', 'status', 'actions'];
 
   constructor(
     private userService: UserService,
@@ -151,12 +150,6 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  showStats(user: User): void {
-    this.dialog.open(UserStatsDialogComponent, {
-      width: '800px',
-      data: { user }
-    });
-  }
 
   exportUsers(format: 'xlsx' | 'csv'): void {
     this.userService.exportUsers(format).subscribe({
@@ -175,45 +168,6 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  resetPassword(user: User): void {
-    this.userService.resetPassword(user.id).subscribe({
-      next: () => {
-        this.snackBar.open(
-          'E-mail de redefinição de senha enviado com sucesso!',
-          'Fechar',
-          { duration: 3000 }
-        );
-      },
-      error: (error: unknown) => {
-        console.error('Erro ao resetar senha:', error);
-        this.snackBar.open(
-          'Erro ao enviar e-mail de redefinição de senha',
-          'Fechar',
-          { duration: 3000 }
-        );
-      }
-    });
-  }
-
-  resendVerification(user: User): void {
-    this.userService.resendVerificationEmail(user.id).subscribe({
-      next: () => {
-        this.snackBar.open(
-          'E-mail de verificação reenviado com sucesso!',
-          'Fechar',
-          { duration: 3000 }
-        );
-      },
-      error: (error: unknown) => {
-        console.error('Erro ao reenviar verificação:', error);
-        this.snackBar.open(
-          'Erro ao reenviar e-mail de verificação',
-          'Fechar',
-          { duration: 3000 }
-        );
-      }
-    });
-  }
 
   toggleStatus(user: User): void {
     const action = user.is_active ? 'desativar' : 'ativar';

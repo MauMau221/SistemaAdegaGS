@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,9 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PublicSettingsService, PublicSettings } from '../../../core/services/public-settings.service';
 import { CartItem } from '../../../core/models/cart.model';
 import { User } from '../../../core/models/auth.model';
 import { map } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -25,12 +27,15 @@ import { map } from 'rxjs/operators';
     MatButtonModule
   ]
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
   isMobileMenuOpen = false;
+  settings: PublicSettings | null = null;
+  private settingsSubscription?: Subscription;
   
   private cartService = inject(CartService);
   private authService = inject(AuthService);
+  private publicSettingsService = inject(PublicSettingsService);
   private router = inject(Router);
 
   cartTotal$ = this.cartService.cartItems$.pipe(
@@ -41,6 +46,30 @@ export class HeaderComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
+    // Carregar configurações iniciais
+    this.publicSettingsService.getSettings().subscribe({
+      next: (settings) => {
+        this.settings = settings;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar configurações:', error);
+      }
+    });
+
+    // Observar mudanças nas configurações
+    this.settingsSubscription = this.publicSettingsService.watchSettings().subscribe(settings => {
+      this.settings = settings;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.settingsSubscription) {
+      this.settingsSubscription.unsubscribe();
+    }
+  }
+
+  getLogoUrl(logoUrl: string | undefined): string {
+    return this.publicSettingsService.getLogoUrl(logoUrl);
   }
 
   onSearch(event: KeyboardEvent): void {
@@ -57,10 +86,19 @@ export class HeaderComponent implements OnInit {
 
   toggleMobileMenu(): void {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    
+    // Prevenir scroll do body quando menu está aberto
+    if (this.isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
   }
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
+    // Restaurar scroll do body
+    document.body.style.overflow = '';
   }
 
   logout(): void {

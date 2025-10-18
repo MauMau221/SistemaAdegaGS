@@ -36,8 +36,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
         <mat-form-field appearance="outline">
           <mat-label>Nome do Remetente</mat-label>
           <input matInput
-                 [(ngModel)]="settings.email_sender_name"
-                 (ngModelChange)="onFieldChange()">
+                 [(ngModel)]="emailSenderName">
           <mat-hint>
             Nome que aparecerá como remetente dos e-mails
           </mat-hint>
@@ -74,8 +73,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
               <mat-form-field appearance="outline">
                 <mat-label>Template de Boas-vindas</mat-label>
                 <textarea matInput
-                          [(ngModel)]="settings.email_templates.welcome"
-                          (ngModelChange)="onFieldChange()"
+                          [(ngModel)]="emailTemplatesWelcome"
                           rows="10">
                 </textarea>
               </mat-form-field>
@@ -97,8 +95,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
               <mat-form-field appearance="outline">
                 <mat-label>Template de Confirmação</mat-label>
                 <textarea matInput
-                          [(ngModel)]="settings.email_templates.order_confirmation"
-                          (ngModelChange)="onFieldChange()"
+                          [(ngModel)]="emailTemplatesOrderConfirmation"
                           rows="10">
                 </textarea>
               </mat-form-field>
@@ -123,8 +120,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
               <mat-form-field appearance="outline">
                 <mat-label>Template de Status</mat-label>
                 <textarea matInput
-                          [(ngModel)]="settings.email_templates.order_status"
-                          (ngModelChange)="onFieldChange()"
+                          [(ngModel)]="emailTemplatesOrderStatus"
                           rows="10">
                 </textarea>
               </mat-form-field>
@@ -148,8 +144,7 @@ import { SystemSettings, SettingsService } from '../../../services/settings.serv
               <mat-form-field appearance="outline">
                 <mat-label>Template de Redefinição</mat-label>
                 <textarea matInput
-                          [(ngModel)]="settings.email_templates.password_reset"
-                          (ngModelChange)="onFieldChange()"
+                          [(ngModel)]="emailTemplatesPasswordReset"
                           rows="10">
                 </textarea>
               </mat-form-field>
@@ -377,6 +372,62 @@ export class EmailSettingsComponent {
       this.settings.email_templates.order_confirmation = this.settings.email_templates.order_confirmation || '';
       this.settings.email_templates.order_status = this.settings.email_templates.order_status || '';
       this.settings.email_templates.password_reset = this.settings.email_templates.password_reset || '';
+    }
+  }
+
+  // Getters e setters para evitar problemas com optional chaining
+  get emailSenderName(): string {
+    return this.settings?.email_sender_name || '';
+  }
+
+  set emailSenderName(value: string) {
+    if (this.settings) {
+      this.settings.email_sender_name = value;
+      this.onFieldChange();
+    }
+  }
+
+  get emailTemplatesWelcome(): string {
+    return this.settings?.email_templates?.welcome || '';
+  }
+
+  set emailTemplatesWelcome(value: string) {
+    if (this.settings && this.settings.email_templates) {
+      this.settings.email_templates.welcome = value;
+      this.onFieldChange();
+    }
+  }
+
+  get emailTemplatesOrderConfirmation(): string {
+    return this.settings?.email_templates?.order_confirmation || '';
+  }
+
+  set emailTemplatesOrderConfirmation(value: string) {
+    if (this.settings && this.settings.email_templates) {
+      this.settings.email_templates.order_confirmation = value;
+      this.onFieldChange();
+    }
+  }
+
+  get emailTemplatesOrderStatus(): string {
+    return this.settings?.email_templates?.order_status || '';
+  }
+
+  set emailTemplatesOrderStatus(value: string) {
+    if (this.settings && this.settings.email_templates) {
+      this.settings.email_templates.order_status = value;
+      this.onFieldChange();
+    }
+  }
+
+  get emailTemplatesPasswordReset(): string {
+    return this.settings?.email_templates?.password_reset || '';
+  }
+
+  set emailTemplatesPasswordReset(value: string) {
+    if (this.settings && this.settings.email_templates) {
+      this.settings.email_templates.password_reset = value;
+      this.onFieldChange();
     }
   }
 }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
 
 class SettingController extends Controller
@@ -20,6 +21,9 @@ class SettingController extends Controller
             'site_description' => 'Sistema de gerenciamento de adega',
             'contact_email' => 'contato@adega.com',
             'contact_phone' => '(11) 99999-9999',
+            'address' => 'Rua Exemplo, 123 - São Paulo, SP',
+            'logo_url' => null,
+            'favicon_url' => null,
             'timezone' => 'America/Sao_Paulo',
             'language' => 'pt-BR',
             'currency' => 'BRL',
@@ -107,11 +111,21 @@ class SettingController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        $request->validate([
+        // Log para debug
+        Log::info('Settings update request:', [
+            'data' => $request->all(),
+            'headers' => $request->headers->all()
+        ]);
+
+        try {
+            $request->validate([
             'site_name' => 'nullable|string|max:255',
             'site_description' => 'nullable|string|max:500',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'logo_url' => 'nullable|string|max:255',
+            'favicon_url' => 'nullable|string|max:255',
             'timezone' => 'nullable|string|max:50',
             'language' => 'nullable|string|max:10',
             'currency' => 'nullable|string|max:3',
@@ -182,6 +196,134 @@ class SettingController extends Controller
         $defaults = (new self)->index()->getData(true); // not ideal; recompor manualmente
         // Como atalho, recarregar via index simples
         return $this->index();
+        
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error:', [
+                'errors' => $e->errors(),
+                'data' => $request->all()
+            ]);
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Settings update error:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Erro interno do servidor',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function uploadLogo(Request $request): JsonResponse
+    {
+        $request->validate([
+            'logo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
+
+        try {
+            $file = $request->file('logo');
+            $filename = 'logo_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('public/logos', $filename);
+            $url = Storage::url($path);
+
+            // Log para debug
+            Log::info('Logo uploaded:', [
+                'filename' => $filename,
+                'path' => $path,
+                'url' => $url,
+                'storage_exists' => Storage::exists($path)
+            ]);
+
+            // Salvar URL no banco
+            Setting::updateOrCreate(
+                ['key' => 'logo_url'],
+                ['value' => $url]
+            );
+
+            return response()->json(['logo_url' => $url]);
+        } catch (\Exception $e) {
+            Log::error('Logo upload error:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Erro ao fazer upload do logo: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function uploadFavicon(Request $request): JsonResponse
+    {
+        // Log para debug
+        \Log::info('Favicon upload request:', [
+            'files' => $request->allFiles(),
+            'headers' => $request->headers->all(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+
+        $request->validate([
+            'favicon' => 'required|file|max:1024'
+        ]);
+
+        try {
+            $file = $request->file('favicon');
+            $filename = 'favicon_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('public/favicons', $filename);
+            $url = Storage::url($path);
+
+            \Log::info('Favicon uploaded successfully:', [
+                'filename' => $filename,
+                'path' => $path,
+                'url' => $url,
+                'storage_exists' => Storage::exists($path)
+            ]);
+
+            // Salvar URL no banco
+            Setting::updateOrCreate(
+                ['key' => 'favicon_url'],
+                ['value' => $url]
+            );
+
+            return response()->json(['favicon_url' => $url]);
+        } catch (\Exception $e) {
+            \Log::error('Favicon upload error:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Erro ao fazer upload do favicon: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function publicSettings(): JsonResponse
+    {
+        // Retornar apenas configurações públicas (sem dados sensíveis)
+        $publicSettings = [
+            'site_name' => config('app.name', 'Adega'),
+            'site_description' => 'Sistema de gerenciamento de adega',
+            'contact_email' => 'contato@adega.com',
+            'contact_phone' => '(11) 99999-9999',
+            'address' => 'Rua Exemplo, 123 - São Paulo, SP',
+            'logo_url' => null,
+            'favicon_url' => null
+        ];
+
+        // Buscar configurações salvas
+        $stored = Setting::whereIn('key', [
+            'site_name',
+            'site_description', 
+            'contact_email',
+            'contact_phone',
+            'address',
+            'logo_url',
+            'favicon_url'
+        ])->pluck('value', 'key')->toArray();
+
+        // Merge com configurações salvas
+        $settings = array_merge($publicSettings, $stored);
+
+        return response()->json($settings);
     }
 
     public function backup(): JsonResponse

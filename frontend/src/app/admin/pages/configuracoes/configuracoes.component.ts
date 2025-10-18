@@ -203,13 +203,17 @@ export class ConfiguracoesComponent implements OnInit {
   onSettingsChange(settings: Partial<SystemSettings>): void {
     if (!this.settings) return;
 
+    console.log('Updating settings:', settings);
+    
     this.settingsService.updateSettings(settings).subscribe({
       next: (updatedSettings) => {
+        console.log('Settings updated successfully:', updatedSettings);
         this.settings = updatedSettings;
         this.snackBar.open('Configurações atualizadas com sucesso!', 'Fechar', { duration: 3000 });
       },
       error: (error) => {
         console.error('Erro ao atualizar configurações:', error);
+        console.error('Error details:', error);
         this.snackBar.open('Erro ao atualizar configurações', 'Fechar', { duration: 3000 });
       }
     });
