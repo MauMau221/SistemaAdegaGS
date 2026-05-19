@@ -93,19 +93,6 @@ php artisan storage:link
 
 Se persistir, limpe o cache: `php artisan config:clear`.
 
-### ❌ Erro: "dotnet run" falha ou pede versão específica
-
-**Solução**: Baixe o SDK mais recente no site da Microsoft. Se der erro de versão, edite o arquivo `print-bridge/PrintBridge.csproj` e altere a tag `<TargetFramework>` para a versão instalada na sua máquina (ex: `net8.0` ou `net10.0`).
-
-### ❌ Erro: 404 ou 403 ao acessar rotas da API
-
-Geralmente é cache de rotas antigo após um git pull. **Solução**:
-
-```bash
-php artisan route:clear
-php artisan config:clear
-```
-
 ## 📦 Implantação em Produção
 
 ### Backend (Laravel) e Frontend (Angular)
