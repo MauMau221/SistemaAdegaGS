@@ -111,9 +111,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (authResponse.user?.type === 'employee') {
       this.orderPollingService.startPolling();
     }
-    const url = this.returnUrl ?? '/';
-    this.router.navigateByUrl(url);
+    this.router.navigateByUrl(this.getPostLoginUrl(authResponse.user?.type));
     this.loading = false;
+  }
+
+  /** Admin vai para /admin; demais usuários respeitam returnUrl (padrão /). */
+  private getPostLoginUrl(userType?: string): string {
+    if (userType === 'admin') {
+      return '/admin';
+    }
+    return this.returnUrl || '/';
   }
 
   private handleSocialAuthError(_event: unknown): void {
@@ -145,9 +152,8 @@ export class LoginComponent implements OnInit, OnDestroy {
             console.log('[LoginComponent] Iniciando polling de pedidos para funcionário (Google)');
             this.orderPollingService.startPolling();
           }
-          
-          const url = this.returnUrl ?? '/';
-          this.router.navigateByUrl(url);
+
+          this.router.navigateByUrl(this.getPostLoginUrl(authResponse.user?.type));
           this.loading = false;
         },
         error: (err: unknown) => {
@@ -221,13 +227,12 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: this.loginForm.get('password')?.value
     };
 
-    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || this.returnUrl || '/';
     this.authService.login(loginData).subscribe({
       next: (response) => {
         if (response.user?.type === 'employee') {
           this.orderPollingService.startPolling();
         }
-        this.router.navigateByUrl(returnUrl);
+        this.router.navigateByUrl(this.getPostLoginUrl(response.user?.type));
       },
       error: (err: unknown) => {
         const msg = err && typeof err === 'object' && 'error' in err
