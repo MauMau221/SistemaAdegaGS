@@ -13,7 +13,7 @@
       <mat-card-content>
         <div class="form-row">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nome do Bundle</mat-label>
+            <mat-label>Nome do Combo</mat-label>
             <input matInput formControlName="name" placeholder="Ex: Kit Gin Tônica">
             <mat-error *ngIf="bundleForm.get('name')?.hasError('required')">
               Nome é obrigatório
@@ -33,7 +33,7 @@
 
         <div class="form-row">
           <mat-form-field appearance="outline">
-            <mat-label>Tipo de Bundle</mat-label>
+            <mat-label>Tipo de Combo</mat-label>
             <mat-select formControlName="bundle_type">
               <mat-option value="combo">Combo</mat-option>
               <mat-option value="copao">Copão</mat-option>
@@ -44,15 +44,15 @@
           <mat-form-field appearance="outline">
             <mat-label>Tipo de Precificação</mat-label>
             <mat-select formControlName="pricing_type">
-              <mat-option value="fixed">Preço Fixo</mat-option>
-              <mat-option value="calculated">Preço Calculado</mat-option>
+              <mat-option value="fixed">Preço Fixo (você define o preço)</mat-option>
+              <mat-option value="calculated">Preço Calculado (o sistema calcula o preço baseado nos itens selecionados)</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="barcode-field">
-            <mat-label>Código de Barras</mat-label>
+            <mat-label>Código de Barras (opcional)</mat-label>
             <input matInput formControlName="barcode" placeholder="Opcional">
           </mat-form-field>
         </div>
@@ -62,8 +62,8 @@
     <!-- Grupos de Escolha (Accordion estilo iFood/Shopify) -->
     <mat-card class="form-section groups-section-card">
       <mat-card-header>
-        <mat-card-title>Grupos de Escolha</mat-card-title>
-        <mat-card-subtitle>Configure os grupos e os produtos de cada um</mat-card-subtitle>
+        <mat-card-title>Sacola do Combo</mat-card-title>
+        <mat-card-subtitle>Configure o que vai ter de opções para o cliente escolher</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <div formArrayName="groups">
@@ -75,13 +75,13 @@
                                 [class.group-error-highlight]="group.invalid && (group.touched || isSubmitted)">
               <mat-expansion-panel-header class="group-panel-header">
                 <mat-panel-title class="group-panel-title">
-                  <span class="group-name-display">{{ group.get('name')?.value || 'Seleção ' + (groupIndex + 1) }}</span>
+                  <span class="group-name-display">{{ group.get('name')?.value || 'Produto ' + (groupIndex + 1) + ' do Combo' }}</span>
                   <span class="group-badge obrigatorio" *ngIf="group.get('min_selections')?.value > 0">Obrigatório</span>
                 </mat-panel-title>
                 <mat-panel-description class="group-panel-description">
                   <button type="button" mat-icon-button color="warn" 
                           (click)="removeGroup(groupIndex); $event.stopPropagation()" 
-                          matTooltip="Remover grupo"
+                          matTooltip="Remover produto do combo"
                           class="group-delete-btn">
                     <mat-icon>delete</mat-icon>
                   </button>
@@ -91,7 +91,7 @@
               <div class="group-panel-body">
                 <div class="group-fields">
                   <mat-form-field appearance="outline" class="group-name-field">
-                    <mat-label>Nome do grupo</mat-label>
+                    <mat-label>Nome do produto</mat-label>
                     <input matInput formControlName="name" placeholder="Ex: Escolha seu Gin">
                     <mat-error *ngIf="group.get('name')?.hasError('required')">Nome é obrigatório</mat-error>
                   </mat-form-field>
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="options-section">
-                  <div class="options-label">Produtos do grupo</div>
+                  <div class="options-label">Produtos que podem ser escolhidos</div>
                   <div formArrayName="options" class="options-list">
                     <div *ngFor="let option of getGroupOptionsFormArray(groupIndex).controls; let optionIndex = index" 
                          [formGroupName]="optionIndex" class="option-row">
@@ -162,10 +162,6 @@
                             <mat-option value="dose">Dose</mat-option>
                           </mat-select>
                         </mat-form-field>
-                        <mat-form-field appearance="outline" class="option-adjust-field">
-                          <mat-label>Ajuste (R$)</mat-label>
-                          <input matInput type="number" formControlName="price_adjustment" step="0.01" min="0">
-                        </mat-form-field>
                       </div>
                     </div>
                   </div>
@@ -177,13 +173,13 @@
                 <div class="group-error-message" *ngIf="group.invalid && (group.touched || isSubmitted)">
                   <mat-icon>error</mat-icon>
                   <span *ngIf="getGroupOptionsFormArray(groupIndex).length === 0">
-                    Este grupo precisa de pelo menos 1 produto selecionado.
+                    Este produto do combo precisa de pelo menos 1 produto selecionado.
                   </span>
                   <span *ngIf="getGroupOptionsFormArray(groupIndex).length > 0 && group.get('name')?.invalid">
-                    Preencha o nome do grupo.
+                    Preencha o nome do produto.
                   </span>
                   <span *ngIf="getGroupOptionsFormArray(groupIndex).length > 0 && group.get('name')?.valid && group.invalid">
-                    Verifique os campos obrigatórios deste grupo.
+                    Verifique os campos obrigatórios deste produto.
                   </span>
                 </div>
               </div>
@@ -193,12 +189,12 @@
 
         <button type="button" mat-raised-button color="primary" (click)="addGroup()" class="add-group-button">
           <mat-icon>add</mat-icon>
-          Adicionar Grupo
+          Adicionar Produto
         </button>
 
         <div class="no-groups-message" *ngIf="groupsFormArray.length === 0">
           <mat-icon>info</mat-icon>
-          <p>Nenhum grupo adicionado. Clique em "Adicionar Grupo" para começar.</p>
+          <p>Nenhum produto adicionado. Clique em "Adicionar Produto" para começar.</p>
         </div>
       </mat-card-content>
     </mat-card>
@@ -207,7 +203,7 @@
     <mat-card class="form-section">
       <mat-card-header>
         <mat-card-title>Preços e Descontos</mat-card-title>
-        <mat-card-subtitle>Configure os preços e descontos do bundle</mat-card-subtitle>
+        <mat-card-subtitle>Configure os preços e descontos do combo</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <div class="price-calculation" *ngIf="originalPrice > 0 && bundleForm.get('pricing_type')?.value === 'calculated'">
@@ -259,8 +255,8 @@
     <!-- Imagens -->
     <mat-card class="form-section">
       <mat-card-header>
-        <mat-card-title>Imagens do Bundle</mat-card-title>
-        <mat-card-subtitle>Adicione imagens para o bundle (máximo 5 imagens)</mat-card-subtitle>
+        <mat-card-title>Imagens do Combo</mat-card-title>
+        <mat-card-subtitle>Adicione imagens para o combo (máximo 5 imagens)</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <div class="images-section">
